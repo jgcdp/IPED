@@ -84,7 +84,7 @@
         {"name": "Telegram", "mimes":["application/x-telegram-chat","application/x-ufed-chat-telegram","application/x-ufed-chat-preview-telegram"]},
         {"name": "Jabber", "mimes":["application/x-jabber-chat"]},
         {"name": "Facebook", "mimes":["application/x-ufed-chat-preview-facebook"]},
-        {"name": "Instagram", "mimes":["application/x-ufed-chat-preview-instagram"]},
+        {"name": "Instagram", "mimes":["application/x-instagram-chat","application/x-ufed-chat-preview-instagram"]},
         {"name": "Discord", "mimes":["application/x-discord-chat"]},
         {"name": "Chat Activities", "mimes": ["application/x-ufed-chatactivity"]},
         {"name": "Others Chats", "mimes":["application/x-ufed-html-chats", "application/x-ufed-chats-txt", "application/x-ufed-chat", "application/x-ufed-chat-preview"]}

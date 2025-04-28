@@ -1,0 +1,11 @@
+﻿########################################################################
+# Processing Settings
+########################################################################
+
+enableHashDBLookup = true
+enableQRCode = false
+enableCarving = false
+enableImageSimilarity = false
+enableOCR = false
+enableAudioTranscription = false
+enableGraphGeneration = false

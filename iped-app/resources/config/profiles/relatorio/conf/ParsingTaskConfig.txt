@@ -1,0 +1,7 @@
+# Use external processes to parse files, isolating infinite loops and OutOfMemoryErrors while parsing.
+# Uses more memory and it is a bit slower because more processes are started and communicated with.
+enableExternalParsing = true
+
+# Configure internal or external (eg ufed) parsers for phone data with more than one parser.
+# Possible values: internal, external, all
+phoneParsersToUse = all

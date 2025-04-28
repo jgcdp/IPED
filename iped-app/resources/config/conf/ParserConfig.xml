@@ -298,6 +298,12 @@
                 <param name="minChatSplitSize" type="int">6000000</param>
             </params>
         </parser>
+        <parser class="iped.parsers.instagram.InstagramParser">
+            <params>
+                <param name="extractMessages" type="bool">true</param>
+                <param name="enabledForUfdr" type="bool">true</param>
+            </params>
+        </parser>
         <parser class="iped.parsers.skype.SkypeParser"></parser>
         <parser class="iped.parsers.tor.TorTcParser"></parser>
         <parser class="iped.parsers.vcard.VCardParser"></parser>
@@ -306,7 +312,7 @@
                 <param name="extractMessages" type="bool">true</param>
                 <param name="mergeBackups" type="bool">true</param>
                 <param name="linkMediasByNameAndApproxSizeFallback" type="bool">true</param>
-                <!--Set as 0 to disable long path matching fallback-->                
+                <!--Set as 0 to disable long path matching fallback-->
                 <param name="linkMediasByLongPathFallback" type="int">40</param>
                 <param name="downloadConnectionTimeout" type="int">500</param>
                 <param name="downloadReadTimeout" type="int">1000</param>

@@ -303,7 +303,7 @@
         <glob pattern="userconfing.xml"/>
     </mime-type>
 
-     <mime-type type="application/x-telegram-chat">
+    <mime-type type="application/x-telegram-chat">
         <sub-class-of type="text/html"/>
     </mime-type>
 	<mime-type type="contact/x-telegram-contact">
@@ -311,6 +311,25 @@
     </mime-type>
 
 	<mime-type type="application/x-telegram-account">
+        <sub-class-of type="text/html"/>
+    </mime-type>
+
+    <mime-type type="application/x-instagram-user-conf">
+        <sub-class-of type="text/xml"/>
+        <glob pattern="com.instagram.android_preferences.xml"/>
+    </mime-type>
+
+    <mime-type type="contact/x-instagram-contact">
+        <sub-class-of type="text/xml"/>
+        <glob pattern="*_usersBootstrapService.xml"/>
+    </mime-type>
+
+    <mime-type type="application/x-instagram-db">
+        <sub-class-of type="application/x-sqlite3"/>
+        <glob pattern="direct.db"/>
+    </mime-type>
+
+    <mime-type type="application/x-instagram-chat">
         <sub-class-of type="text/html"/>
     </mime-type>
 
@@ -1389,11 +1408,11 @@
     <mime-type type="message/x-telegram-attachment">
         <sub-class-of type="message/x-telegram-message"/>
     </mime-type>
-    
+
     <mime-type type="message/x-threema-message">
         <sub-class-of type="message/x-chat-message"/>
     </mime-type>
-    
+
     <mime-type type="message/x-threema-attachment">
         <sub-class-of type="message/x-threema-message"/>
     </mime-type>
@@ -1651,7 +1670,7 @@
         </magic>
         <glob pattern="*.ofc"/>
     </mime-type>
-    
+
     <mime-type type="application/x-vlc-ini">
         <sub-class-of type="text/x-ini"/>
         <glob pattern="vlc-qt-interface.ini"/>

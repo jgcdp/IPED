@@ -1,6 +1,6 @@
 /*
  * Copyright 2012-2014, Luis Filipe da Cruz Nassif
- * 
+ *
  * This file is part of Indexador e Processador de Evidências Digitais (IPED).
  *
  * IPED is free software: you can redistribute it and/or modify
@@ -302,7 +302,7 @@ public class Main {
             }
 
             Configuration.getInstance().loadConfigurables(iped.configPath, true);
-            
+
             SystemOut.println(Bootstrap.SUB_PROCESS_TEMP_FOLDER + System.getProperty("java.io.tmpdir"));
 
             success = iped.execute();
