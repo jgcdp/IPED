@@ -5,11 +5,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
-import iped.data.IItemReader;
 //import iped.parsers.instagram.Chat;
-import iped.parsers.instagram.Contact;
 //import iped.parsers.instagram.Message;
 //import iped.parsers.instagram.PoolData;
 //import iped.parsers.instagram.TagHtml;
@@ -76,7 +73,7 @@ public class ReportGenerator {
 					+ iped.parsers.whatsapp.Util.encodeBase64(contact.getAvatar()) + "\" width=\"112\"/><br>"); //$NON-NLS-1$
 		out.println(Messages.getString("InstagramContact.ContactID") + " " + contact.getId());
 		out.println("<br>" + Messages.getString("InstagramContact.FirstName") + " " + format(contact.getName()));
-		out.println("<br>" + Messages.getString("InstagramContact.LastName") + " " + format(contact.getLastName()));
+		out.println("<br>" + Messages.getString("InstagramContact.LastName") + " " + format(contact.getFullname()));
 		out.println("<br>" + Messages.getString("InstagramContact.Username") + " " + format(contact.getUsername()));
 		out.println("<br>" + Messages.getString("InstagramContact.Phone") + " " + format(contact.getPhone()));
 		if (contact.isGroup()) {
@@ -355,9 +352,9 @@ public class ReportGenerator {
 			out.println(
 					"<div class=\"bbl\"><div class=\"aw\"><div class=\"awl\"></div></div><div class=\"incoming from\">"); //$NON-NLS-1$
 		}
-		//Contact contact = message.getFrom();
+		Contact contact = message.getFrom();
         out.println("<span style=\"font-family: Arial; color: #b4c74b;\">" //$NON-NLS-1$
-					+ message.getRecipientIds() + "</span><br/>"); //$NON-NLS-1$
+					+ message.getRecipients() + "</span><br/>"); //$NON-NLS-1$
 
 //		if (message.getType() != null && !message.getType().isEmpty()) {
 //			out.print(format(message.getType()) + "<br>");

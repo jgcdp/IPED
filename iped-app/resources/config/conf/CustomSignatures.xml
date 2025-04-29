@@ -315,12 +315,10 @@
     </mime-type>
 
     <mime-type type="application/x-instagram-user-conf">
-        <sub-class-of type="text/xml"/>
         <glob pattern="com.instagram.android_preferences.xml"/>
     </mime-type>
 
     <mime-type type="contact/x-instagram-contact">
-        <sub-class-of type="text/xml"/>
         <glob pattern="*_usersBootstrapService.xml"/>
     </mime-type>
 

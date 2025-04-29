@@ -2,14 +2,13 @@ package iped.parsers.instagram;
 
 import java.util.List;
 
-import dpf.ap.gpinf.interfacetelegram.DecoderTelegramInterface;
 import dpf.ap.gpinf.interfacetelegram.PhotoData;
 
 public class Contact {
 	private String id = null;
 	private int groupId;
 	private String name = null;
-	private String lastName = null;
+	private String fullname = null;
 	private String username = null;
 	private String phone = null;
 	private byte[] avatar = null;
@@ -21,7 +20,13 @@ public class Contact {
 		this.id = id;
 	}
 
-	public String getId() {
+    public Contact(String id, String username, String fullName) {
+        this.id = id;
+        this.username = username;
+        this.fullname = fullName;
+    }
+
+    public String getId() {
 		return id;
 	}
 
@@ -39,7 +44,11 @@ public class Contact {
 		return name;
 	}
 
-	public String getName() {
+    public String getFullname() {
+        return fullname;
+    }
+
+    public String getName() {
 		return name;
 	}
 
@@ -71,31 +80,8 @@ public class Contact {
 		this.avatar = avatar;
 	}
 
-	public String getLastName() {
-		return lastName;
-	}
-
-	public String getFullname() {
-		String fn = "";
-		if (name != null) {
-			fn += name;
-		}
-		if (lastName != null) {
-			if (!fn.equals("")) {
-				fn += " ";
-			}
-			fn += lastName;
-		}
-		if (fn.equals("") && username != null) {
-			fn = username;
-		}
-
-		return fn;
-	}
-
-
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
+	public void setFullname(String fullname) {
+		this.fullname = fullname;
 	}
 
 	public List<PhotoData> getPhotos() {
@@ -137,7 +123,7 @@ public class Contact {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		String name = getFullname();
+		String name = this.fullname;
 		if (name != null) {
 			sb.append(name.trim());
 		}

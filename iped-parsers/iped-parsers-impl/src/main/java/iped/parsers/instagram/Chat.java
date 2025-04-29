@@ -3,6 +3,7 @@ package iped.parsers.instagram;
 import iped.parsers.instagram.Contact;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Chat {
     private ArrayList<Message> messages = new ArrayList<>();
@@ -11,10 +12,14 @@ public class Chat {
     private boolean isDeleted;
     private String id;
 
-    public Chat(String id, long userId, long recipientIds, long timestamp, String texto) {
+    public Chat(String id, long messageId, List<Contact> recipients, String data, long timeStamp, Contact from, boolean fromMe) {
         this.id = id;
-        Message message = new Message(userId, recipientIds, timestamp, texto);
+        Message message = new Message(messageId, recipients, data, timeStamp, from, fromMe);
         this.messages.add(message);
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
     }
 
     public void addMessage(Message message){

@@ -1,30 +1,34 @@
 package iped.parsers.instagram;
 
-import iped.parsers.telegram.Chat;
-import iped.parsers.telegram.Contact;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Message {
-    private long id = 0;
-    private long recipientIds;
-    private long userId;
+    private long id;
+    private List<Contact> recipients = null;
     private String data;
     private Date timeStamp = null;
     boolean fromMe = true;
     private String type = null;
     private Contact from = null;
-    private Chat chat = null;
 
-    public Message(long userId, long recipientIds, long timestamp, String data) {
-        this.userId = userId;
-        this.recipientIds = recipientIds;
+    public Message(long id, List<Contact> recipients, String data, long timeStamp, Contact from, boolean fromMe) {
+        this.id = id;
+        this.recipients = recipients;
         this.data = data;
-        this.timeStamp = new Date(timestamp/1000);
+        this.timeStamp = new Date(timeStamp/1000);
+        this.from = from;
+        this.fromMe = fromMe;
     }
 
-    public long getRecipientIds() {
-        return recipientIds;
+    public Contact getFrom() {
+        return from;
+    }
+
+    public List<Contact> getRecipients() {
+        return recipients;
     }
 
     public Date getTimeStamp() {
