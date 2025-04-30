@@ -71,15 +71,15 @@ public class ReportGenerator {
 		if (contact.getAvatar() != null)
 			out.println("<img src=\"data:image/jpg;base64," //$NON-NLS-1$
 					+ iped.parsers.whatsapp.Util.encodeBase64(contact.getAvatar()) + "\" width=\"112\"/><br>"); //$NON-NLS-1$
-		out.println(Messages.getString("InstagramContact.ContactID") + " " + contact.getId());
-		out.println("<br>" + Messages.getString("InstagramContact.FirstName") + " " + format(contact.getName()));
-		out.println("<br>" + Messages.getString("InstagramContact.LastName") + " " + format(contact.getFullname()));
-		out.println("<br>" + Messages.getString("InstagramContact.Username") + " " + format(contact.getUsername()));
-		out.println("<br>" + Messages.getString("InstagramContact.Phone") + " " + format(contact.getPhone()));
+		out.println(Messages.getString("TelegramContact.ContactID") + " " + contact.getId());
+		out.println("<br>" + Messages.getString("TelegramContact.FirstName") + " " + format(contact.getName()));
+		out.println("<br>" + Messages.getString("TelegramContact.LastName") + " " + format(contact.getFullname()));
+		out.println("<br>" + Messages.getString("TelegramContact.Username") + " " + format(contact.getUsername()));
+		out.println("<br>" + Messages.getString("TelegramContact.Phone") + " " + format(contact.getPhone()));
 		if (contact.isGroup()) {
-			out.println("<br>[" + Messages.getString("InstagramContact.Group") + "]");
+			out.println("<br>[" + Messages.getString("TelegramContact.Group") + "]");
 		} else if (contact.isChannel()) {
-			out.println("<br>[" + Messages.getString("InstagramContact.Channel") + "]");
+			out.println("<br>[" + Messages.getString("TelegramContact.Channel") + "]");
 		}
 		out.println("</body>\n</html>"); //$NON-NLS-1$
 
@@ -99,17 +99,17 @@ public class ReportGenerator {
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		PrintWriter out = new PrintWriter(new OutputStreamWriter(bout, StandardCharsets.UTF_8));
 		String title = "Chat id = " + String.valueOf(c.getId());
-//		if (c.isGroup()) {
-//			title = Messages.getString("InstagramContact.Group") + ": " + title;
-//		} else if (c.isChannel()) {
-//			title = Messages.getString("InstagramContact.Channel") + ": " + title;
-//		} else {
-//			if (c.getC().getPhone() != null) {
-//				title += " (" + Messages.getString("InstagramContact.Phone") + " " + c.getC().getPhone() + ")";
-//			} else if (c.getC().getUsername() != null) {
-//				title += " (" + Messages.getString("InstagramContact.Username") + " " + c.getC().getUsername() + ")";
-//			}
-//		}
+		if (c.isGroup()) {
+			title = Messages.getString("TelegramContact.Group") + ": " + title;
+		} else if (c.isChannel()) {
+			title = Messages.getString("TelegramContact.Channel") + ": " + title;
+		} else {
+			if (c.getUser().getPhone() != null) {
+				title += " (" + Messages.getString("TelegramContact.Phone") + " " + c.getUser().getPhone() + ")";
+			} else if (c.getUser().getUsername() != null) {
+				title += " (" + Messages.getString("TelegramContact.Username") + " " + c.getUser().getUsername() + ")";
+			}
+		}
 
 		printMessageFileHeader(out, title, null, false, false, false);
 

@@ -17,118 +17,120 @@
 -->
 <mime-info>
 
-	<mime-type type="application/x-vnd.corel.zcf.draw.document+zip">
+    <mime-type type="application/x-vnd.corel.zcf.draw.document+zip">
         <glob pattern="*.CDR"/>
         <sub-class-of type="application/zip"/>
     </mime-type>
 
     <mime-type type="application/coreldraw">
-    	<magic priority="60">
-          <match value="RIFF" type="string" offset="0">
-           	<match value="CDR" type="stringignorecase" offset="8" />
-           	<match value="DES" type="stringignorecase" offset="8" />
-          </match>
-          <match value="RIFF" type="string" offset="50">
-           	<match value="CDR" type="stringignorecase" offset="58" />
-           	<match value="DES" type="stringignorecase" offset="58" />
-          </match>
-     	</magic>
+        <magic priority="60">
+            <match value="RIFF" type="string" offset="0">
+                <match value="CDR" type="stringignorecase" offset="8"/>
+                <match value="DES" type="stringignorecase" offset="8"/>
+            </match>
+            <match value="RIFF" type="string" offset="50">
+                <match value="CDR" type="stringignorecase" offset="58"/>
+                <match value="DES" type="stringignorecase" offset="58"/>
+            </match>
+        </magic>
         <glob pattern="*.cdr"/>
     </mime-type>
 
     <mime-type type="image/x-corelphotopaint">
-    	<magic priority="60">
-          <match value="CPTFILE" type="string" offset="0" />
-          <match value="CPT9FILE" type="string" offset="0" />
-     	</magic>
+        <magic priority="60">
+            <match value="CPTFILE" type="string" offset="0"/>
+            <match value="CPT9FILE" type="string" offset="0"/>
+        </magic>
     </mime-type>
 
     <mime-type type="image/vnd.radiance">
-    	<magic priority="40">
-          <match value="#?RADIANCE" type="string" offset="0" />
-     	</magic>
+        <magic priority="40">
+            <match value="#?RADIANCE" type="string" offset="0"/>
+        </magic>
     </mime-type>
 
-	<mime-type type="application/x-superfetch">
-		<_comment>Windows EVT Log</_comment>
-    	<magic priority="40">
-    		<match value="MEMO" type="string" offset="0"/>
-      		<match value="MEM0" type="string" offset="0"/>
-      		<!--agdbinfo v20181111 leaks memory on files with sig below-->
-      		<!--match value="MAM" type="string" offset="0">
-      			<match value="0x84" type="string" offset="3"/>
-      		</match-->
-    	</magic>
-    	<glob pattern="Ag*.db"/>
-  	</mime-type>
+    <mime-type type="application/x-superfetch">
+        <_comment>Windows EVT Log</_comment>
+        <magic priority="40">
+            <match value="MEMO" type="string" offset="0"/>
+            <match value="MEM0" type="string" offset="0"/>
+            <!--agdbinfo v20181111 leaks memory on files with sig below-->
+            <!--match value="MAM" type="string" offset="0">
+                <match value="0x84" type="string" offset="3"/>
+            </match-->
+        </magic>
+        <glob pattern="Ag*.db"/>
+    </mime-type>
 
-	<mime-type type="application/x-elf-log">
-		<_comment>Windows EVT Log</_comment>
-    	<magic priority="50">
-      		<match value="LfLe" type="string" offset="4"/>
-    	</magic>
-    	<glob pattern="*.evt"/>
-  	</mime-type>
+    <mime-type type="application/x-elf-log">
+        <_comment>Windows EVT Log</_comment>
+        <magic priority="50">
+            <match value="LfLe" type="string" offset="4"/>
+        </magic>
+        <glob pattern="*.evt"/>
+    </mime-type>
 
-	<mime-type type="application/x-elf-file">
-		<_comment>Windows EVTX Log</_comment>
-    	<magic priority="50">
-      		<match value="ElfFile" type="string" offset="0"/>
-    	</magic>
-    	<glob pattern="*.evtx"/>
-  	</mime-type>
+    <mime-type type="application/x-elf-file">
+        <_comment>Windows EVTX Log</_comment>
+        <magic priority="50">
+            <match value="ElfFile" type="string" offset="0"/>
+        </magic>
+        <glob pattern="*.evtx"/>
+    </mime-type>
 
-	<mime-type type="application/x-prefetch">
-    	<magic priority="60">
-      		<match value="SCCA" type="string" offset="4"/>
-    	</magic>
-    	<glob pattern="*.pf"/>
-  	</mime-type>
+    <mime-type type="application/x-prefetch">
+        <magic priority="60">
+            <match value="SCCA" type="string" offset="4"/>
+        </magic>
+        <glob pattern="*.pf"/>
+    </mime-type>
 
-	<mime-type type="image/heic">
-    	<magic priority="60">
-      		<match value="ftypheic" type="string" offset="4"/>
-      		<match value="ftypheix" type="string" offset="4"/>
-    	</magic>
-    	<sub-class-of type="application/octet-stream"/>
-    	<glob pattern="*.heic"/>
-  	</mime-type>
+    <mime-type type="image/heic">
+        <magic priority="60">
+            <match value="ftypheic" type="string" offset="4"/>
+            <match value="ftypheix" type="string" offset="4"/>
+        </magic>
+        <sub-class-of type="application/octet-stream"/>
+        <glob pattern="*.heic"/>
+    </mime-type>
 
-	<mime-type type="image/heic-sequence">
-    	<magic priority="60">
-      		<match value="ftyphevc" type="string" offset="4"/>
-      		<match value="ftyphevx" type="string" offset="4"/>
-    	</magic>
-    	<sub-class-of type="application/octet-stream"/>
-  	</mime-type>
+    <mime-type type="image/heic-sequence">
+        <magic priority="60">
+            <match value="ftyphevc" type="string" offset="4"/>
+            <match value="ftyphevx" type="string" offset="4"/>
+        </magic>
+        <sub-class-of type="application/octet-stream"/>
+    </mime-type>
 
-  	<mime-type type="image/heif">
-    	<magic priority="60">
-      		<match value="ftypmif1" type="string" offset="4"/>
-    	</magic>
-    	<sub-class-of type="application/octet-stream"/>
-    	<glob pattern="*.heif"/>
-  	</mime-type>
+    <mime-type type="image/heif">
+        <magic priority="60">
+            <match value="ftypmif1" type="string" offset="4"/>
+        </magic>
+        <sub-class-of type="application/octet-stream"/>
+        <glob pattern="*.heif"/>
+    </mime-type>
 
-  	<mime-type type="image/heif-sequence">
-    	<magic priority="60">
-      		<match value="ftypmsf1" type="string" offset="4"/>
-    	</magic>
-    	<sub-class-of type="application/octet-stream"/>
-  	</mime-type>
+    <mime-type type="image/heif-sequence">
+        <magic priority="60">
+            <match value="ftypmsf1" type="string" offset="4"/>
+        </magic>
+        <sub-class-of type="application/octet-stream"/>
+    </mime-type>
 
-	<mime-type type="application/x-dbf">
-    	<magic priority="100">
-      		<match value="(?s)^[\\x02\\x03\\x30\\x31\\x32\\x43\\x63\\x83\\x8B\\xCB\\xF5\\xE5\\xFB].[\\x01-\\x0C][\\x01-\\x1F].{4}(?:.[^\\x00]|[\\x41-\\xFF].)(?:[^\\x00\\x01].|.[^\\x00]).{31}(?&lt;=[\\x00][^\\x00]{0,10})[A-Z@+]" type="regex" offset="0"/>
-    	</magic>
-    	<sub-class-of type="text/plain"/>
-    	<glob pattern="*.dbf"/>
-    	<glob pattern="*.dbase"/>
-    	<glob pattern="*.dbase3"/>
-  	</mime-type>
+    <mime-type type="application/x-dbf">
+        <magic priority="100">
+            <match
+                value="(?s)^[\\x02\\x03\\x30\\x31\\x32\\x43\\x63\\x83\\x8B\\xCB\\xF5\\xE5\\xFB].[\\x01-\\x0C][\\x01-\\x1F].{4}(?:.[^\\x00]|[\\x41-\\xFF].)(?:[^\\x00\\x01].|.[^\\x00]).{31}(?&lt;=[\\x00][^\\x00]{0,10})[A-Z@+]"
+                type="regex" offset="0"/>
+        </magic>
+        <sub-class-of type="text/plain"/>
+        <glob pattern="*.dbf"/>
+        <glob pattern="*.dbase"/>
+        <glob pattern="*.dbase3"/>
+    </mime-type>
 
     <mime-type type="application/x-edb">
-        <_comment>Extensible Storage Engine (ESE) Database File </_comment>
+        <_comment>Extensible Storage Engine (ESE) Database File</_comment>
         <magic priority="60">
             <match value="0xEFCDAB89" type="string" offset="4"/>
         </magic>
@@ -159,9 +161,9 @@
     </mime-type>
 
     <mime-type type="application/x-firefox-mozlz40">
-    	<magic priority="50">
-    		<match value="\x6D\x6F\x7A\x4C\x7A\x34\x30" type="string" offset="0"/>
-    	</magic>
+        <magic priority="50">
+            <match value="\x6D\x6F\x7A\x4C\x7A\x34\x30" type="string" offset="0"/>
+        </magic>
     </mime-type>
 
     <mime-type type="application/x-firefox-savedsession">
@@ -273,24 +275,24 @@
         <sub-class-of type="application/x-whatsapp-db"/>
     </mime-type>
 
-	<mime-type type="application/x-usnjournal-$J">
+    <mime-type type="application/x-usnjournal-$J">
         <glob pattern="$UsnJrnl:$J*"/>
-		<glob pattern="$UsnJrnl$J*"/>
+        <glob pattern="$UsnJrnl$J*"/>
     </mime-type>
 
-	<mime-type type="application/x-usnjournal-report-html">
-		<sub-class-of type="text/html"/>
+    <mime-type type="application/x-usnjournal-report-html">
+        <sub-class-of type="text/html"/>
     </mime-type>
 
-	<mime-type type="application/x-usnjournal-report-csv">
-		<sub-class-of type="text/csv"/>
+    <mime-type type="application/x-usnjournal-report-csv">
+        <sub-class-of type="text/csv"/>
     </mime-type>
 
-	<mime-type type="application/x-usnjournal-registry">
-		<sub-class-of type="application/x-metadata-entry"/>
+    <mime-type type="application/x-usnjournal-registry">
+        <sub-class-of type="application/x-metadata-entry"/>
     </mime-type>
 
-	<mime-type type="application/x-telegram-db">
+    <mime-type type="application/x-telegram-db">
         <sub-class-of type="application/x-sqlite3"/>
         <glob pattern="cache4.db"/>
     </mime-type>
@@ -298,7 +300,7 @@
         <sub-class-of type="application/x-sqlite3"/>
     </mime-type>
 
-	<mime-type type="application/x-telegram-user-conf">
+    <mime-type type="application/x-telegram-user-conf">
         <sub-class-of type="application/dita+xml"/>
         <glob pattern="userconfing.xml"/>
     </mime-type>
@@ -306,19 +308,21 @@
     <mime-type type="application/x-telegram-chat">
         <sub-class-of type="text/html"/>
     </mime-type>
-	<mime-type type="contact/x-telegram-contact">
+    <mime-type type="contact/x-telegram-contact">
         <sub-class-of type="text/html"/>
     </mime-type>
 
-	<mime-type type="application/x-telegram-account">
+    <mime-type type="application/x-telegram-account">
         <sub-class-of type="text/html"/>
     </mime-type>
 
     <mime-type type="application/x-instagram-user-conf">
+        <sub-class-of type="application/dita+xml"/>
         <glob pattern="com.instagram.android_preferences.xml"/>
     </mime-type>
 
     <mime-type type="contact/x-instagram-contact">
+        <sub-class-of type="application/dita+xml"/>
         <glob pattern="*_usersBootstrapService.xml"/>
     </mime-type>
 
@@ -430,14 +434,14 @@
     <mime-type type="application/x-shareaza-searches-dat">
         <_comment>Shareaza Searches.dat file</_comment>
         <sub-class-of type="application/x-p2p"/>
-        <glob pattern="Searches.dat" />
+        <glob pattern="Searches.dat"/>
     </mime-type>
 
     <mime-type type="application/x-shareaza-library-dat">
         <_comment>Shareaza Library{1,2}.dat file</_comment>
         <sub-class-of type="application/x-p2p"/>
-        <glob pattern="Library1.dat" />
-        <glob pattern="Library2.dat" />
+        <glob pattern="Library1.dat"/>
+        <glob pattern="Library2.dat"/>
     </mime-type>
 
     <mime-type type="application/x-shareaza-library-dat-entry">
@@ -448,9 +452,9 @@
         <_comment>Shareaza download control file (.sd)</_comment>
         <sub-class-of type="application/x-p2p"/>
         <!-- priority must be bigger than video/x-ms-wmv to avoid false negatives -->
-    	<magic priority="65">
+        <magic priority="65">
             <match value="0x53444C00000000FF" type="string" offset="0" mask="0xFFFFFF00FFFFFFFF"/>
-     	</magic>
+        </magic>
         <glob pattern="*.sd"/>
     </mime-type>
 
@@ -458,35 +462,35 @@
         <_comment>BitTorrent Client Resume.dat file</_comment>
         <sub-class-of type="application/x-p2p"/>
         <magic priority="50">
-    		<match value="d10:.fileguard" type="string" offset="0">
-	    		<match value="e4:info" type="string" offset="16:1024"/>
-    		</match>
-		</magic>
-        <glob pattern="resume.dat" />
-        <glob pattern="resume.dat.old" />
-        <glob pattern="resume.dat.new" />
+            <match value="d10:.fileguard" type="string" offset="0">
+                <match value="e4:info" type="string" offset="16:1024"/>
+            </match>
+        </magic>
+        <glob pattern="resume.dat"/>
+        <glob pattern="resume.dat.old"/>
+        <glob pattern="resume.dat.new"/>
     </mime-type>
 
     <mime-type type="application/x-bittorrent-settings-dat">
         <_comment>BitTorrent Client Settings.dat file</_comment>
         <sub-class-of type="application/x-p2p"/>
         <magic priority="50">
-    		<match value="d10:.fileguard" type="string" offset="0">
-	    		<match value="e9:autostart" type="string" offset="16:1024"/>
-    		</match>
-		</magic>
+            <match value="d10:.fileguard" type="string" offset="0">
+                <match value="e9:autostart" type="string" offset="16:1024"/>
+            </match>
+        </magic>
     </mime-type>
 
-	<mime-type type="application/x-bittorrent">
-		<sub-class-of type="application/x-p2p"/>
-		<magic priority="50">
-    		<match value="d8:announce" type="string" offset="0"/>
-    		<match value="d4:info" type="string" offset="0"/>
-    		<match value="d10:created by" type="string" offset="0"/>
-    		<match value="d8:encoding" type="string" offset="0"/>
-		</magic>
-		<glob pattern="*.torrent"/>
-	</mime-type>
+    <mime-type type="application/x-bittorrent">
+        <sub-class-of type="application/x-p2p"/>
+        <magic priority="50">
+            <match value="d8:announce" type="string" offset="0"/>
+            <match value="d4:info" type="string" offset="0"/>
+            <match value="d10:created by" type="string" offset="0"/>
+            <match value="d8:encoding" type="string" offset="0"/>
+        </magic>
+        <glob pattern="*.torrent"/>
+    </mime-type>
 
     <mime-type type="message/outlook-pst">
         <magic priority="70">
@@ -511,15 +515,15 @@
     <mime-type type="application/mbox">
         <magic priority="80">
             <match value="From " type="string" offset="0">
-            	<match value="\nReturn-Path:" type="stringignorecase" offset="0:1000"/>
-            	<match value="\nReply-To:" type="stringignorecase" offset="0:1000"/>
-      			<match value="\nX-Originating-IP:" type="stringignorecase" offset="0:1000"/>
-      			<match value="\nReceived:" type="stringignorecase" offset="0:1000"/>
-      			<match value="\nDelivered-To: " type="string" offset="32:1000"/>
-      			<match value="\nMessage-ID:" type="stringignorecase" offset="0:1000"/>
-      			<match value="\nSubject:" type="string" offset="0:1000"/>
-      			<match value="\nMime-Version: " type="string" offset="32:256"/>
-      		</match>
+                <match value="\nReturn-Path:" type="stringignorecase" offset="0:1000"/>
+                <match value="\nReply-To:" type="stringignorecase" offset="0:1000"/>
+                <match value="\nX-Originating-IP:" type="stringignorecase" offset="0:1000"/>
+                <match value="\nReceived:" type="stringignorecase" offset="0:1000"/>
+                <match value="\nDelivered-To: " type="string" offset="32:1000"/>
+                <match value="\nMessage-ID:" type="stringignorecase" offset="0:1000"/>
+                <match value="\nSubject:" type="string" offset="0:1000"/>
+                <match value="\nMime-Version: " type="string" offset="32:256"/>
+            </match>
         </magic>
         <sub-class-of type="text/plain"/>
         <glob pattern="*.mbox"/>
@@ -540,7 +544,7 @@
         <glob pattern="*.nsf"/>
     </mime-type>
 
-	<mime-type type="application/x-mssql">
+    <mime-type type="application/x-mssql">
         <magic priority="50">
             <match value="\x01\x0F\x00\x00" type="string" offset="0"/>
         </magic>
@@ -573,7 +577,8 @@
 
     <mime-type type="application/messenger-chat">
         <magic priority="60">
-            <match value="MessageLog.xsl......Log" type="string" offset="60:70" mask="0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000FFFFFF"/>
+            <match value="MessageLog.xsl......Log" type="string" offset="60:70"
+                   mask="0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000FFFFFF"/>
         </magic>
         <sub-class-of type="application/xml"/>
     </mime-type>
@@ -586,13 +591,13 @@
     </mime-type>
 
     <mime-type type="video/x-ms-wmv">
-        <sub-class-of type="video/x-ms-asf" />
+        <sub-class-of type="video/x-ms-asf"/>
         <glob pattern="*.wmv"/>
         <magic priority="60">
-            <match value="Windows Media Video" type="unicodeLE" offset="0:8192" />
-            <match value="VC-1 Advanced Profile" type="unicodeLE" offset="0:8192" />
-            <match value="wmv1" type="unicodeLE" offset="0:8192" />
-            <match value="wmv2" type="unicodeLE" offset="0:8192" />
+            <match value="Windows Media Video" type="unicodeLE" offset="0:8192"/>
+            <match value="VC-1 Advanced Profile" type="unicodeLE" offset="0:8192"/>
+            <match value="wmv1" type="unicodeLE" offset="0:8192"/>
+            <match value="wmv2" type="unicodeLE" offset="0:8192"/>
         </magic>
     </mime-type>
 
@@ -660,50 +665,50 @@
     </mime-type>
 
     <mime-type type="message/x-emlx">
-      <magic priority="60">
-        <match value="\nMIME-Version: 1.0\nx-store-info:" type="string" offset="2:10"/>
-        <match value="\nx-store-info:" type="string" offset="2:10"/>
-        <match value="\nX-Antivirus:" type="string" offset="2:10"/>
-        <match value="\nRelay-Version:" type="string" offset="2:10"/>
-        <match value="\n#!\ rnews" type="string" offset="2:10"/>
-        <match value="\nN#!\ rnews" type="string" offset="2:10"/>
-        <match value="\nForward\ to" type="string" offset="2:10"/>
-        <match value="\nPipe\ to" type="string" offset="2:10"/>
-        <match value="\nReturn-Path:" type="string" offset="2:10"/>
-        <match value="\nFrom:" type="string" offset="2:10"/>
-        <match value="\nReceived:" type="string" offset="2:10"/>
-        <match value="\nMessage-ID:" type="string" offset="2:10"/>
-      </magic>
-      <glob pattern="*.emlx"/>
-      <sub-class-of type="text/x-tika-text-based-message"/>
+        <magic priority="60">
+            <match value="\nMIME-Version: 1.0\nx-store-info:" type="string" offset="2:10"/>
+            <match value="\nx-store-info:" type="string" offset="2:10"/>
+            <match value="\nX-Antivirus:" type="string" offset="2:10"/>
+            <match value="\nRelay-Version:" type="string" offset="2:10"/>
+            <match value="\n#!\ rnews" type="string" offset="2:10"/>
+            <match value="\nN#!\ rnews" type="string" offset="2:10"/>
+            <match value="\nForward\ to" type="string" offset="2:10"/>
+            <match value="\nPipe\ to" type="string" offset="2:10"/>
+            <match value="\nReturn-Path:" type="string" offset="2:10"/>
+            <match value="\nFrom:" type="string" offset="2:10"/>
+            <match value="\nReceived:" type="string" offset="2:10"/>
+            <match value="\nMessage-ID:" type="string" offset="2:10"/>
+        </magic>
+        <glob pattern="*.emlx"/>
+        <sub-class-of type="text/x-tika-text-based-message"/>
     </mime-type>
 
     <mime-type type="message/x-rfc822-mac">
-      <magic priority="50">
-        <match value="0xD00D0000010101000200000003000000" type="string" offset="0"/>
-        <match minShouldMatch="3">
-          <match value="\rDate:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rDelivered-To:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rFrom:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rMIME-Version:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rReceived:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rRelay-Version:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rReturn-Path:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rSent:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rStatus:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rSubject:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rTo:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rUser-Agent:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rMessage-ID:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rX-Mailer:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rX-Originating-IP:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rX-Original-To:" type="stringignorecase" offset="0:4096"/>
-          <match value="\rX-DKIM:" type="stringignorecase" offset="0:4096"/>
-        </match>
-      </magic>
-      <sub-class-of type="message/rfc822"/>
-      <glob pattern="*.olk15MsgSource"/>
-      <glob pattern="*.olk15MsgAttachment"/>
+        <magic priority="50">
+            <match value="0xD00D0000010101000200000003000000" type="string" offset="0"/>
+            <match minShouldMatch="3">
+                <match value="\rDate:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rDelivered-To:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rFrom:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rMIME-Version:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rReceived:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rRelay-Version:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rReturn-Path:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rSent:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rStatus:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rSubject:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rTo:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rUser-Agent:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rMessage-ID:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rX-Mailer:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rX-Originating-IP:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rX-Original-To:" type="stringignorecase" offset="0:4096"/>
+                <match value="\rX-DKIM:" type="stringignorecase" offset="0:4096"/>
+            </match>
+        </magic>
+        <sub-class-of type="message/rfc822"/>
+        <glob pattern="*.olk15MsgSource"/>
+        <glob pattern="*.olk15MsgAttachment"/>
     </mime-type>
 
     <mime-type type="application/x-unallocated">
@@ -743,22 +748,22 @@
     </mime-type>
 
     <mime-type type="application/x-iso9660-image">
-     <acronym>ISO</acronym>
-     <_comment>ISO 9660 CD-ROM filesystem data</_comment>
-     <magic priority="50">
-       <!--CDROM sector: 2048 -->
-       <match value="CD001" type="string" offset="32769"/>
-       <match value="CD001" type="string" offset="34817"/>
-       <match value="CD001" type="string" offset="36865"/>
-       <!--CDROM RAW sector: 2352 -->
-       <match value="CD001" type="string" offset="37649"/>
-       <match value="CD001" type="string" offset="40001"/>
-       <!--CDROM RAW XA sector: 2352 -->
-       <match value="CD001" type="string" offset="37657"/>
-       <match value="CD001" type="string" offset="40009"/>
-     </magic>
-     <glob pattern="*.iso"/>
-   </mime-type>
+        <acronym>ISO</acronym>
+        <_comment>ISO 9660 CD-ROM filesystem data</_comment>
+        <magic priority="50">
+            <!--CDROM sector: 2048 -->
+            <match value="CD001" type="string" offset="32769"/>
+            <match value="CD001" type="string" offset="34817"/>
+            <match value="CD001" type="string" offset="36865"/>
+            <!--CDROM RAW sector: 2352 -->
+            <match value="CD001" type="string" offset="37649"/>
+            <match value="CD001" type="string" offset="40001"/>
+            <!--CDROM RAW XA sector: 2352 -->
+            <match value="CD001" type="string" offset="37657"/>
+            <match value="CD001" type="string" offset="40009"/>
+        </magic>
+        <glob pattern="*.iso"/>
+    </mime-type>
 
     <mime-type type="application/x-udf-image">
         <acronym>ISO</acronym>
@@ -895,7 +900,7 @@
         <glob pattern="AC_SearchStrings.dat"/>
     </mime-type>
 
-     <mime-type type="application/x-emule-preferences-ini">
+    <mime-type type="application/x-emule-preferences-ini">
         <sub-class-of type="text/plain"/>
     </mime-type>
 
@@ -948,34 +953,34 @@
     </mime-type>
 
     <mime-type type="application/x-nls">
-    	<!--Evita detecção incorreta de itens NLS como x-ms-owner-->
-    	<magic priority="90">
-            <match value="0x0D000000000000003F00" type="string" offset="0"  mask="0xFFFF000000FF00FFFFFF"/>
+        <!--Evita detecção incorreta de itens NLS como x-ms-owner-->
+        <magic priority="90">
+            <match value="0x0D000000000000003F00" type="string" offset="0" mask="0xFFFF000000FF00FFFFFF"/>
         </magic>
         <sub-class-of type="application/x-ms-owner"/>
         <glob pattern="*.nls"/>
     </mime-type>
 
     <mime-type type="video/mp2t">
-    	<magic priority="50">
+        <magic priority="50">
             <match value="HDMV" type="string" offset="215"/>
         </magic>
         <glob pattern="*.MTS"/>
-		<glob pattern="*.m2ts"/>
+        <glob pattern="*.m2ts"/>
     </mime-type>
 
     <mime-type type="video/ts">
-    	<magic priority="50">
+        <magic priority="50">
             <match value="G" type="string" offset="0">
-	            <match value="G" type="string" offset="188">
-		            <match value="G" type="string" offset="376">
-			            <match value="G" type="string" offset="564">
-				            <match value="G" type="string" offset="752">
-					            <match value="G" type="string" offset="940"/>
-				            </match>
-			            </match>
-		            </match>
-	            </match>
+                <match value="G" type="string" offset="188">
+                    <match value="G" type="string" offset="376">
+                        <match value="G" type="string" offset="564">
+                            <match value="G" type="string" offset="752">
+                                <match value="G" type="string" offset="940"/>
+                            </match>
+                        </match>
+                    </match>
+                </match>
             </match>
         </magic>
         <glob pattern="*.ts"/>
@@ -988,327 +993,328 @@
         <glob pattern="*.lnk"/>
     </mime-type>
 
-	<!-- considera tambem vcards com letra minuscula, como os exportados pelo thunderbird -->
+    <!-- considera tambem vcards com letra minuscula, como os exportados pelo thunderbird -->
     <mime-type type="text/x-vcard">
-    	<magic priority="50">
-    		<match value="begin:vcard" type="string" offset="0"/>
-    	</magic>
+        <magic priority="50">
+            <match value="begin:vcard" type="string" offset="0"/>
+        </magic>
     </mime-type>
 
     <!-- vcard decodificado pelo parser -->
     <mime-type type="application/x-vcard-html">
-    	<sub-class-of type="text/html"/>
+        <sub-class-of type="text/html"/>
     </mime-type>
 
     <!-- UFED specific mimes-->
 
     <mime-type type="application/x-ufed-html-report">
-    	<magic priority="60">
-    		<match value="&lt;title&gt;Extraction Report" type="string" offset="100:150"/>
-            <match value="0x3C7469746C653E52656C6174C3B372696F206465206578747261C3A7C3A36F" type="string" offset="100:150"/>
+        <magic priority="60">
+            <match value="&lt;title&gt;Extraction Report" type="string" offset="100:150"/>
+            <match value="0x3C7469746C653E52656C6174C3B372696F206465206578747261C3A7C3A36F" type="string"
+                   offset="100:150"/>
         </magic>
-    	<sub-class-of type="text/html"/>
+        <sub-class-of type="text/html"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-summary">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="window.name=&quot;&quot;;" type="string" offset="84"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="window.name=&quot;&quot;;" type="string" offset="84"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-sms">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="smsmessages" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="smsmessages" type="string" offset="97"/>
             <match value="mensagenssms" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-mms">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="mmsmessages" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="mmsmessages" type="string" offset="97"/>
             <match value="mensagensmms" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-calls">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
             <match value="&quot;calllog" type="string" offset="96"/>
             <match value="registrodechamadas" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-mails">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="&quot;emails" type="string" offset="96"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="&quot;emails" type="string" offset="96"/>
             <match value="&quot;e-mails" type="string" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-contacts">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="&quot;contacts" type="string" offset="96"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="&quot;contacts" type="string" offset="96"/>
             <match value="&quot;contatos" type="string" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-bluetooth">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
             <match value="bluetoothdevices" type="string" offset="97"/>
             <match value="dispositivosbluetooth" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-simdata">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="simdata" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="simdata" type="string" offset="97"/>
             <match value="dadossim" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-apps">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="installedapplications" type="string" offset="97"/>
-    		<match value="&quot;applications&quot;" type="string" offset="96"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="installedapplications" type="string" offset="97"/>
+            <match value="&quot;applications&quot;" type="string" offset="96"/>
             <match value="aplicativosinstalados" type="string" offset="97"/>
             <match value="&quot;aplicativos&quot;" type="string" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-chats">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
             <match value="&quot;chats" type="string" offset="96"/>
             <match value="&quot;bate-papos" type="string" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-calendar">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
             <match value="&quot;calendar" type="string" offset="96"/>
             <match value="&quot;calend..rio" type="regex" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-logs">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="logentries" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="logentries" type="string" offset="97"/>
             <match value="entradasdelog" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-users">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="useraccounts" type="string" offset="97"/>
-    		<match value="deviceusers" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="useraccounts" type="string" offset="97"/>
+            <match value="deviceusers" type="string" offset="97"/>
             <match value="contasdeusu..rio" type="regex" offset="97"/>
             <match value="usu..riosdodispositivo" type="regex" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-searches">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="searcheditems" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="searcheditems" type="string" offset="97"/>
             <match value="itenspesquisados" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-bookmarks">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="webbookmarks" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="webbookmarks" type="string" offset="97"/>
             <match value="indicadoresdaweb" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-notes">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="&quot;notes&quot;" type="string" offset="96"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="&quot;notes&quot;" type="string" offset="96"/>
             <match value="&quot;anota....es" type="regex" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-wifi">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="wirelessnetworks" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="wirelessnetworks" type="string" offset="97"/>
             <match value="redessemfio" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-notifications">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="notifications" type="string" offset="97"/>
-    		<match value="devicenotifications" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="notifications" type="string" offset="97"/>
+            <match value="devicenotifications" type="string" offset="97"/>
             <match value="notifica....es" type="regex" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-locations">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="&quot;locations&quot;" type="string" offset="96"/>
-    		<match value="&quot;journeys&quot;" type="string" offset="96"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="&quot;locations&quot;" type="string" offset="96"/>
+            <match value="&quot;journeys&quot;" type="string" offset="96"/>
             <match value="&quot;locais&quot;" type="string" offset="96"/>
             <match value="&quot;jornadas&quot;" type="string" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-cookies">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
             <match value="&quot;cookies" type="string" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-webhistory">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="webhistory" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="webhistory" type="string" offset="97"/>
             <match value="hist..ricodaweb" type="regex" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-configurations">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="configurations" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="configurations" type="string" offset="97"/>
             <match value="configura....es" type="regex" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-passwords">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="&quot;passwords" type="string" offset="96"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="&quot;passwords" type="string" offset="96"/>
             <match value="&quot;senhas" type="string" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-autofill">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="&quot;autofill" type="string" offset="96"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="&quot;autofill" type="string" offset="96"/>
             <match value="&quot;autopreenchimento" type="string" offset="96"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-celltowers">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="celltowers" type="string" offset="97"/>
-    		<match value="cellsites" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="celltowers" type="string" offset="97"/>
+            <match value="cellsites" type="string" offset="97"/>
             <match value="torresdec..lula" type="regex" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-energyevents">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="energyevents" type="string" offset="97"/>
-    		<match value="powerevents" type="string" offset="97"/>
-    		<match value="poweringevents" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="energyevents" type="string" offset="97"/>
+            <match value="powerevents" type="string" offset="97"/>
+            <match value="poweringevents" type="string" offset="97"/>
             <match value="eventoscomenergia" type="string" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-userdict">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="userdictionary" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="userdictionary" type="string" offset="97"/>
             <match value="dicion..riodousu..rio" type="regex" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-ips">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="ipconnections" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="ipconnections" type="string" offset="97"/>
             <match value="conex..esip" type="regex" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-html-recordings">
-    	<sub-class-of type="application/x-ufed-html-report"/>
-    	<magic priority="65">
-    		<match value="recordings" type="string" offset="97"/>
+        <sub-class-of type="application/x-ufed-html-report"/>
+        <magic priority="65">
+            <match value="recordings" type="string" offset="97"/>
             <match value="grava....es" type="regex" offset="97"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-ufed-chats-txt">
-    	<sub-class-of type="text/plain"/>
-    	<magic priority="60">
-    		<match value="Start Time:" type="string" offset="3">
-    			<match value="Last Activity:" type="string" offset="16:53">
-    				<match value="Participants:" type="string" offset="32:96"/>
-    			</match>
-    		</match>
-    		<match value="Hora de in" type="string" offset="3">
-    			<match value="ltima atividade:" type="string" offset="24:60">
-    				<match value="Participantes:" type="string" offset="43:105"/>
-    			</match>
-    		</match>
+        <sub-class-of type="text/plain"/>
+        <magic priority="60">
+            <match value="Start Time:" type="string" offset="3">
+                <match value="Last Activity:" type="string" offset="16:53">
+                    <match value="Participants:" type="string" offset="32:96"/>
+                </match>
+            </match>
+            <match value="Hora de in" type="string" offset="3">
+                <match value="ltima atividade:" type="string" offset="24:60">
+                    <match value="Participantes:" type="string" offset="43:105"/>
+                </match>
+            </match>
         </magic>
-    	<glob pattern="chat.*txt" isregex="true"/>
+        <glob pattern="chat.*txt" isregex="true"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-contact">
-    	<sub-class-of type="text/html"/>
+        <sub-class-of type="text/html"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-useraccount">
-    	<sub-class-of type="text/html"/>
+        <sub-class-of type="text/html"/>
     </mime-type>
 
     <mime-type type="message/x-ufed-email">
-    	<sub-class-of type="text/html"/>
+        <sub-class-of type="text/html"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-chat-preview">
-    	<sub-class-of type="application/x-preview-with-links"/>
+        <sub-class-of type="application/x-preview-with-links"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-chat-preview-whatsapp">
-    	<sub-class-of type="application/x-ufed-chat-preview"/>
+        <sub-class-of type="application/x-ufed-chat-preview"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-chat-preview-telegram">
-    	<sub-class-of type="application/x-ufed-chat-preview"/>
+        <sub-class-of type="application/x-ufed-chat-preview"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-chat-preview-skype">
-    	<sub-class-of type="application/x-ufed-chat-preview"/>
+        <sub-class-of type="application/x-ufed-chat-preview"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-chat-preview-facebook">
-    	<sub-class-of type="application/x-ufed-chat-preview"/>
+        <sub-class-of type="application/x-ufed-chat-preview"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-chat-preview-instagram">
-    	<sub-class-of type="application/x-ufed-chat-preview"/>
+        <sub-class-of type="application/x-ufed-chat-preview"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-chat-whatsapp">
-    	<sub-class-of type="application/x-ufed-chat"/>
+        <sub-class-of type="application/x-ufed-chat"/>
     </mime-type>
 
     <mime-type type="application/x-ufed-chat-telegram">
-    	<sub-class-of type="application/x-ufed-chat"/>
+        <sub-class-of type="application/x-ufed-chat"/>
     </mime-type>
 
     <mime-type type="application/x-win10-timeline">
@@ -1456,18 +1462,18 @@
     </mime-type>
 
     <mime-type type="application/x-ufed-deviceinfo">
-    	<sub-class-of type="text/html"/>
+        <sub-class-of type="text/html"/>
     </mime-type>
 
-	<mime-type type="application/x-database-table">
-    	<sub-class-of type="text/html"/>
+    <mime-type type="application/x-database-table">
+        <sub-class-of type="text/html"/>
     </mime-type>
 
     <mime-type type="application/x-jabber-chat">
-       <magic priority="50">
+        <magic priority="50">
             <match value=".{0,114}Conversation with.{1,50}at.{21}on" type="regex" offset="86"/>
-       </magic>
-       <sub-class-of type="text/html"/>
+        </magic>
+        <sub-class-of type="text/html"/>
     </mime-type>
 
     <mime-type type="message/x-jabber-message">
@@ -1519,7 +1525,7 @@
     </mime-type>
 
     <mime-type type="application/x-tor-tc-fragment">
-	</mime-type>
+    </mime-type>
 
     <mime-type type="application/x-win10-mail-db">
         <sub-class-of type="application/x-edb"/>
@@ -1543,26 +1549,26 @@
     </mime-type>
 
     <mime-type type="application/x-chrome-cache-index">
-        <_comment>Chrome Cache Index file </_comment>
+        <_comment>Chrome Cache Index file</_comment>
         <magic priority="50">
             <match value="0xC3CA03C1" type="string" offset="0"/>
         </magic>
     </mime-type>
 
     <mime-type type="application/x-discord-chat">
-    	<sub-class-of type="text/html"/>
+        <sub-class-of type="text/html"/>
     </mime-type>
 
     <mime-type type="message/x-discord-message">
-    	<sub-class-of type="message/x-chat-message"/>
+        <sub-class-of type="message/x-chat-message"/>
     </mime-type>
 
     <mime-type type="message/x-discord-attachment">
-    	<sub-class-of type="message/x-discord-message"/>
+        <sub-class-of type="message/x-discord-message"/>
     </mime-type>
 
     <mime-type type="call/x-discord-call">
-    	<sub-class-of type="message/x-chat-message"/>
+        <sub-class-of type="message/x-chat-message"/>
     </mime-type>
 
     <mime-type type="video/x-matroska">
@@ -1572,12 +1578,12 @@
                 </match>
             </match>
         </magic>
-        <glob pattern="*.mkv" />
+        <glob pattern="*.mkv"/>
     </mime-type>
 
     <mime-type type="audio/x-matroska">
-        <sub-class-of type="video/x-matroska" />
-        <glob pattern="*.mka" />
+        <sub-class-of type="video/x-matroska"/>
+        <glob pattern="*.mka"/>
     </mime-type>
 
     <mime-type type="video/webm">
@@ -1587,14 +1593,14 @@
                 </match>
             </match>
         </magic>
-        <glob pattern="*.webm" />
+        <glob pattern="*.webm"/>
     </mime-type>
 
     <mime-type type="video/x-dav">
         <magic priority="60">
             <match value="DAHUA\x22" type="string" offset="0"/>
         </magic>
-        <glob pattern="*.dav" />
+        <glob pattern="*.dav"/>
     </mime-type>
 
     <mime-type type="audio/ilbc">
@@ -1632,16 +1638,16 @@
         <glob pattern="*.mp4a"/>
         <glob pattern="*.m4a"/>
         <glob pattern="*.m4b"/>
-        <sub-class-of type="application/quicktime" />
+        <sub-class-of type="application/quicktime"/>
     </mime-type>
 
     <mime-type type="audio/x-aac">
         <magic priority="60">
             <match value="0xFC" type="string" offset="6">
-	            <match value="0xFFF15040" type="string" offset="0"/>
-	            <match value="0xFFF15080" type="string" offset="0"/>
-	            <match value="0xFFF15C40" type="string" offset="0"/>
-	            <match value="0xFFF15C80" type="string" offset="0"/>
+                <match value="0xFFF15040" type="string" offset="0"/>
+                <match value="0xFFF15080" type="string" offset="0"/>
+                <match value="0xFFF15C40" type="string" offset="0"/>
+                <match value="0xFFF15C80" type="string" offset="0"/>
             </match>
         </magic>
         <glob pattern="*.aac"/>

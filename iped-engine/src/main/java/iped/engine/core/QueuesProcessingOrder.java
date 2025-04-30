@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import iped.parsers.instagram.InstagramParser;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MediaTypeRegistry;
@@ -70,6 +71,11 @@ public class QueuesProcessingOrder {
         mediaTypes.put(TelegramParser.TELEGRAM_USER_CONF, 2);
         mediaTypes.put(TelegramParser.TELEGRAM_DB, 3);
         mediaTypes.put(TelegramParser.TELEGRAM_DB_IOS, 3);
+
+        mediaTypes.put(InstagramParser.INSTAGRAM_USER_CONF, 2);
+        mediaTypes.put(InstagramParser.INSTAGRAM_CONTACT, 2);
+        mediaTypes.put(InstagramParser.INSTAGRAM_DB, 3);
+        mediaTypes.put(InstagramParser.INSTAGRAM_DB_IOS, 3);
 
         mediaTypes.put(CacheIndexParser.CHROME_INDEX_MIME_TYPE, 2);
         mediaTypes.put(MediaType.parse(DiscordParser.CHAT_MIME_TYPE), 3);

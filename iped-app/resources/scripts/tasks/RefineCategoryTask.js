@@ -27,7 +27,7 @@ function process(e){
 	var mime = e.getMediaType().toString();
 	var name = e.getName().toLowerCase();
 	var path = e.getPath().toLowerCase().replace(/\\/g, "/");
-	
+
 	// Workaround for Tika limitation: https://github.com/sepinf-inc/IPED/issues/1793
 	if(mime.equals("application/vnd.apple.unknown.13")){
 		if(ext.equals("pages")){
@@ -44,7 +44,7 @@ function process(e){
 			e.setCategory("Presentations");
 		}
 	}
-	
+
 	if(e.getMetadata().get("chromeCache:isChromeCacheEntry")){
 		e.addCategory("Chrome Cache");
 	}
@@ -55,13 +55,13 @@ function process(e){
         }
         if(e.getName().contains("@me")){
             e.setMediaTypeStr("application/x-discord-account")
-        }            
+        }
     }
-	
+
 	if(/.*(-delta|-flat|-(f|s)[0-9]{3})\.vmdk$/i.test(e.getName())){
 	    e.setMediaTypeStr("application/x-vmdk-data");
 	}
-	
+
 	if("application/x-disk-image".equals(mime) && (ext.equals("dd") || ext.equals("000") || ext.equals("001"))){
 	    e.setMediaTypeStr("application/x-raw-image");
 	}
@@ -70,17 +70,17 @@ function process(e){
 		e.setMediaTypeStr("video/mp2t");
 		e.setCategory("Videos");
 	}
-	
+
 	if(mime.indexOf("x-ufed-") != -1 && categorias.indexOf("Other files") != -1){
 		var cat = mime.substring(mime.indexOf("x-ufed-") + 7);
-		cat = cat.substring(0, 1).toUpperCase() + cat.substring(1); 
+		cat = cat.substring(0, 1).toUpperCase() + cat.substring(1);
 		e.setCategory(cat);
 	}
-	
+
 	if(path.indexOf("whatsapp") != -1 && mime.equals("application/dita+xml") &&
-		(e.getName().equals("com.whatsapp_preferences.xml") || 
+		(e.getName().equals("com.whatsapp_preferences.xml") ||
 		 e.getName().equals("com.whatsapp_preferences_light.xml") ||
-		 e.getName().equals("com.whatsapp.w4b_preferences.xml") || 
+		 e.getName().equals("com.whatsapp.w4b_preferences.xml") ||
 		 e.getName().equals("com.whatsapp.w4b_preferences_light.xml") ||
 		 e.getName().equals("registration.RegisterPhone.xml") ||
 		 e.getName().equals("startup_prefs.xml"))) {
@@ -93,6 +93,14 @@ function process(e){
 		//e.setCategory("Contacts");
 	}
 
+	if(mime.equals("application/dita+xml") && e.getName().equals("com.instagram.android_preferences.xml")){
+    		e.setMediaTypeStr("application/x-instagram-user-conf");
+    }
+
+    if(mime.equals("application/dita+xml") && e.getName().contains("usersBootstrapService")){
+        	e.setMediaTypeStr("contact/x-instagram-contact");
+    }
+
 	if(categorias.indexOf("Images") > -1){
 
 		if(isFromInternet(e))
@@ -100,7 +108,7 @@ function process(e){
 
 		else if(inSystemFolder(e))
 			e.setCategory("Images in System Folders");
-			
+
 		else
 			e.setCategory("Other Images");
 	}
@@ -119,32 +127,32 @@ function process(e){
 		else
 			e.setCategory("Other Texts");
 	}
-	
+
 	else if(isFromInternet(e)){
 		if(e.getMediaType().toString().equals("application/x-sqlite3"))
 			e.setCategory("Internet History");
 	}
-    
+
     else if(categorias.indexOf("Other files") > -1){
-		
+
 		if (ext.equals("url"))
 			e.setCategory("URL links");
-			
+
 		else if (ext.equals("plist")) {
 			if (path.indexOf("/safari/") > -1) {
-				if (name.indexOf("history") > -1 || 
+				if (name.indexOf("history") > -1 ||
 	 			   name.indexOf("downloads") > -1 ||
 	  			   name.indexOf("lastsession") > -1 ||
-	   			   name.indexOf("topsites") > -1 || 
+	   			   name.indexOf("topsites") > -1 ||
 				   name.indexOf("bookmarks") > -1)
 					e.setCategory("Internet History");
 			}
 		} else {
 			if (e.getPath().toLowerCase().indexOf("/chrome/user data/") > -1) {
-				if (name.indexOf(" session") > -1 || 
+				if (name.indexOf(" session") > -1 ||
 	 			   name.indexOf(" tabs") > -1 ||
 	  			   name.indexOf("visited links") > -1 ||
-	   			   name.indexOf("history") > -1 || 
+	   			   name.indexOf("history") > -1 ||
 				   name.indexOf("journal") > -1)
 					e.setCategory("Internet History");
 			}
@@ -177,7 +185,7 @@ function process(e){
 		}
 	}
 
-	// Usually, conditions that overwrite the category (using setCategory()) 
+	// Usually, conditions that overwrite the category (using setCategory())
 	// should go before the ones that add other categories (using addCategory()).
 
 	if(length == 0)
@@ -200,10 +208,10 @@ function process(e){
 		(path.indexOf("/apple/mobilesync/backup") > -1)
 		)
 		e.addCategory("iPhone Backup");
-		
+
 	if (mime.equals("application/x-ios-backup-manifest-db"))
 		e.addCategory("iPhone Backup");
-	
+
 	if (mime.equals("application/x-ios-sms-db") ||
 		mime.equals("application/x-ios-addressbook-db") ||
 		mime.equals("application/x-ios-calllog-db") ||
@@ -217,14 +225,14 @@ function process(e){
 		){
 		e.addCategory("Databases");
 	}
-	
-	
+
+
 	//Torchat Install files
 	if (path.indexOf("torchat/") !== -1){
 		e.addCategory("Torchat");
 		e.addCategory("Tor");
 	}
-		
+
 	//Files related to Tor, TorBrowser e OperaTor
 	if ((path.indexOf("torbrowser/") !== -1)||
 		(name.equals("tor.exe"))||
@@ -233,8 +241,8 @@ function process(e){
 		(name.equals("tor-resolve.exe"))
 		)
 		e.addCategory("Tor");
-	
-	
+
+
 	//Cloud Storage Software and their default local folders
 	if (((path.indexOf("megasync/") !== -1)||
 		(path.indexOf("dropbox/") !== -1)||
@@ -255,7 +263,7 @@ function process(e){
 		(path.indexOf("/my tresors/") !== -1)||
 		(path.indexOf("\'s tresor/") !== -1)||
 		(path.indexOf("/library/application support/icloud/accounts/") !== -1)||
-		(path.indexOf("/library/preferences/mobilemeaccounts.plist") !== -1)||		
+		(path.indexOf("/library/preferences/mobilemeaccounts.plist") !== -1)||
 		(name.indexOf("dropbox.exe") !== -1)||
 		(name.indexOf("megasync.exe") !== -1)||
 		(name.indexOf("onedrive.exe") !== -1)||
@@ -275,29 +283,29 @@ function process(e){
 		(name.indexOf("tresorit.exe") !== -1))&&((path.indexOf("/appdata/local") == -1)&&(path.indexOf("/appdata/locallow") == -1)&&(path.indexOf("/appdata/roaming") == -1)&&(path.indexOf("/programdata/") == -1)&&(path.indexOf("/desktop.ini") == -1))
 		)
 		e.addCategory("Cloud Drives");
-	
+
 
 	//Programas peer-to-peer
 	if ((path.indexOf("/roaming/shareaza/data") !== -1)	||
 		(name.indexOf("shareaza.db3") !== -1)
 		)
 		e.addCategory("Shareaza");
-	
-		
+
+
 	//Telegram
 	if (name.equals("translit.cache") === true){
 		e.addCategory("Telegram");
 		e.addCategory("Contacts");
 	}
 	if ((path.indexOf("ph.telegra.telegraph") !== -1))	{
-		e.addCategory("Telegram");	
+		e.addCategory("Telegram");
 	}
-	
+
 	//Categories for Brazilian Software
-	
+
 	//Program Files of Federal Taxes Agency
 	if(e.getMediaType().toString().equals("application/irpf")){
-		
+
 		if (name.indexOf("-irpf-") !== -1)
 			e.addCategory("Tax Returns and Receipts IRPF");
 
@@ -309,13 +317,13 @@ function process(e){
 
 		else if (name.indexOf("-dipj-") !== -1)
 			e.addCategory("Tax Returns and Receipts DIPJ");
-		
+
 		else if (name.indexOf("-cnpj-") !== -1)
 			e.addCategory("Tax Returns and Receipts CNPJ");
-		
+
 		else if (name.indexOf("-dsimples-") !== -1)
 			e.addCategory("Tax Returns and Receipts DSIMPLES");
-		
+
 		else if (name.indexOf("-dctfs") !== -1)
 			e.addCategory("Tax Returns and Receipts DCTF");
 
@@ -324,49 +332,49 @@ function process(e){
 
 		else if (name.indexOf("-perdcomp") !== -1)
 			e.addCategory("Tax Returns and Receipts PER DCOMP");
-		
+
 		else if (ext.equals("rec")||ext.equals("dec") ||ext.equals("bak")  ||ext.equals("dbk"))
-			e.addCategory("Other Tax Returns and Receipts");	
+			e.addCategory("Other Tax Returns and Receipts");
 	}
-	
-	
+
+
 	//Files related to "Conectividade Social da CAIXA", "Sistema Empresa de Recolhimento do FGTS", "Informações à Previdência Social" (SEFIP/GEFIP)
 	if(e.getMediaType().toString().equals("application/zip")){
 		if (ext.equals("sfp")||(ext.equals("bkp")&& name.indexOf(".bkp")==16))
-			e.addCategory("SEFIP_GEFIP Files");	
+			e.addCategory("SEFIP_GEFIP Files");
 		if (ext.equals("cns"))
 			e.addCategory("Social Connectivity Program Files");
 	}
-	
+
 	if (name.indexOf("sefip.re") !== -1 || name.indexOf("sefipcr.re") !== -1)
 		e.addCategory("SEFIP_GEFIP Files");
-		
+
 	if (name.indexOf("sfpdb001") !== -1)
 		e.addCategory("SEFIP Databases");
-		
+
 	if (name.indexOf("sefip.exe") !== -1)
 		e.addCategory("SEFIP Executables");
-		
+
 	if (name.indexOf("cnsini.exe") !== -1){
 		e.addCategory("Social Connectivity Program Executables");
 		e.addCategory("Social Connectivity Program Files");
 	}
-	
+
 	//Must be tested for false positives...
 	/*if ((name.endsWith(".re") === true)||(name.equals("hash.txt") === true))
 		e.addCategory("SEFIP Files");
-	
+
 	if (name.equals("selo.xml") === true){
 		e.addCategory("Social Connectivity Program Files");
 		e.addCategory("SEFIP Files");
 	}
 	*/
-	
+
 	//Files related to "Guia de Recolhimento Rescisório do FGTS da Caixa Econômica Federal"
-	if (name.indexOf("grrf.re") !== -1 || name.indexOf("grrf.fdb") !== -1)	
-		e.addCategory("GRRF Files");	
-		
-		
+	if (name.indexOf("grrf.re") !== -1 || name.indexOf("grrf.fdb") !== -1)
+		e.addCategory("GRRF Files");
+
+
 	//Specific PDF files with known name patterns created by some softwares
 	if(categorias.indexOf("PDF Documents") !== -1)
 	{
@@ -389,12 +397,12 @@ function process(e){
 	}
 	if (((path.indexOf("pdcomp") !== -1)||
 	(path.indexOf("perdcomp") !== -1))
-	&&(path.indexOf("wdpdcomp") == -1)&&(path.indexOf("wpdcomp") == -1))	
+	&&(path.indexOf("wdpdcomp") == -1)&&(path.indexOf("wpdcomp") == -1))
 	{
-		e.addCategory("Tax Returns and Receipts PER DCOMP");	
+		e.addCategory("Tax Returns and Receipts PER DCOMP");
 	}
-	
-	
+
+
 	//SPED Program Files
 	if ((ext.equals("sped"))	||
 	((ext.equals("txt"))&&(name.indexOf("sped-") !== -1))||
@@ -404,7 +412,7 @@ function process(e){
 	{
 		e.addCategory("SPED Program Files");
 	}
-	
+
 	//Receitanet Program Files
 	if (
 	(path.indexOf("/receitanet") !== -1)
@@ -412,7 +420,7 @@ function process(e){
 	{
 		e.addCategory("Receitanet Program Files");
 	}
-	
+
 	//RFB Program Files
 	if(
 		(path.indexOf("programa rfb/") !== -1)||
@@ -459,11 +467,11 @@ function process(e){
 			e.addCategory("E-Mule");
 		}
 	}
-	
+
 	// Custom Regripper Reports
 
 	if (mime.equals("application/x-windows-registry-report")){
-		
+
 		if (name.indexOf("_os") !== -1) {
 			e.setCategory("Registry OS Info")
 		}
@@ -515,7 +523,7 @@ function process(e){
 		if (name.indexOf("_useractivity") !== -1) {
 			e.setCategory("Registry User Activity")
 		}
-		
+
 		if (name.indexOf("_userfile") !== -1) {
 			e.setCategory("Registry User Files")
 		}
@@ -535,9 +543,9 @@ function process(e){
 		if (name.indexOf("_usercommunications") !== -1) {
 			e.setCategory("Registry User Communication")
 		}
-			
+
 	}
-	
+
 }
 
 
@@ -545,14 +553,14 @@ function process(e){
  *  Auxiliar function
  */
 function isFromInternet(e){
-	
+
 	var path = e.getPath();
-	
-	return 	path.indexOf("Temporary Internet") > -1 || 
+
+	return 	path.indexOf("Temporary Internet") > -1 ||
 		path.indexOf("/Microsoft/Windows/INetCache") > -1 ||
 		path.indexOf("/Microsoft/Windows/INetCookies") > -1 ||
 		path.indexOf("Chrome/User Data/") > -1 ||
-		path.indexOf("Mozilla/Firefox/Profiles") > -1 || 
+		path.indexOf("Mozilla/Firefox/Profiles") > -1 ||
 		path.indexOf("Apple Computer/Safari") > -1 ||
 		path.indexOf("/Library/Safari") > -1 ||
 		path.indexOf("/Library/Caches/com.apple.Safari/") > -1 ||
@@ -560,8 +568,8 @@ function isFromInternet(e){
 		path.indexOf("/Library/Cookies/Cookies.binarycookies") > -1 ||
 		path.indexOf("/Library/Preferences/com.apple.Safari") > -1 ||
 		path.indexOf("chromium/Default/Cache") > -1 ||
-		path.indexOf("cache/mozilla/firefox") > -1 || 
-		path.indexOf("/Library/Application Support/Firefox/") > -1 || 
+		path.indexOf("cache/mozilla/firefox") > -1 ||
+		path.indexOf("/Library/Application Support/Firefox/") > -1 ||
 		path.indexOf("/Cookies/") > -1;
 }
 

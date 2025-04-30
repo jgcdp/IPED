@@ -11,11 +11,17 @@ public class Chat {
     private boolean isGroup;
     private boolean isDeleted;
     private String id;
+    private Contact user;
 
-    public Chat(String id, long messageId, List<Contact> recipients, String data, long timeStamp, Contact from, boolean fromMe) {
+    public Chat(Contact user, String id, long messageId, List<Contact> recipients, String data, long timeStamp, Contact from, boolean fromMe) {
+        this.user = user;
         this.id = id;
         Message message = new Message(messageId, recipients, data, timeStamp, from, fromMe);
         this.messages.add(message);
+    }
+
+    public Contact getUser() {
+        return user;
     }
 
     public boolean isDeleted() {

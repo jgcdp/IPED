@@ -188,10 +188,9 @@ public class InstagramParser extends SQLite3DBParser {
 
         try {
             logger.info("---------- entrou parse android ---------");
-            Contact user = decodeAndroidAccount(stream);
-            if (user != null) {
-                createAccountHTML(user, handler, context);
-                users.add(user);
+            users = (ArrayList<Contact>) decodeAndroidAccount(stream);
+            for (Contact u : users) {
+                createAccountHTML(u, handler, context);
             }
 
         } catch (Exception e) {
@@ -227,7 +226,8 @@ public class InstagramParser extends SQLite3DBParser {
 
     }
 
-    private Contact decodeAndroidAccount(InputStream xmlInputStream) {
+    private List<Contact> decodeAndroidAccount(InputStream xmlInputStream) {
+        List<Contact> usersDecodes = new ArrayList<>();
         Contact user = null;
 
         try {
@@ -250,7 +250,7 @@ public class InstagramParser extends SQLite3DBParser {
 
             if (rawJsonString == null) {
                 logger.info("user_access_map string not found.");
-                return user;
+                return usersDecodes;
             }
 
             // Decode escaped XML entities
@@ -266,16 +266,15 @@ public class InstagramParser extends SQLite3DBParser {
 
                 user = new Contact(userInfo.optString("id"));
                 user.setUsername(userInfo.optString("username"));
-                user.setName(userInfo.optString("full_name"));
+                user.setFullname(userInfo.optString("full_name"));
+                usersDecodes.add(user);
             }
-
-            logger.info(user.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
 
-        return user;
+        return usersDecodes;
     }
 
     private void parseInstagramDBIOS(InputStream stream, ContentHandler handler, Metadata metadata,
@@ -289,10 +288,6 @@ public class InstagramParser extends SQLite3DBParser {
 
         logger.info("--- PARSE DB ANDROID ---");
         IItemSearcher searcher = context.get(IItemSearcher.class);
-
-        String dbPath = ((ItemInfo) context.get(ItemInfo.class)).getPath();
-        populateContacts(searcher, dbPath);
-
         EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
             new ParsingEmbeddedDocumentExtractor(context));
         try (Connection conn = getConnection(stream, metadata, context)) {
@@ -316,43 +311,6 @@ public class InstagramParser extends SQLite3DBParser {
         } catch (Exception e1) {
             e1.printStackTrace();
             throw new TikaException("Error parsing instagram database", e1);
-        }
-    }
-
-    private void populateContacts(IItemSearcher searcher, String dbPath) {
-        String query;
-        List<IItemReader> result;
-        Contact user;
-
-        if (searcher == null) {
-            return;
-        }
-
-        query = BasicProps.CONTENTTYPE + ":\"" + INSTAGRAM_ACCOUNT.toString() + "\"";
-        result = searcher.search(query);
-        if (!result.isEmpty()) {
-            IItemReader item = result.get(0);
-            try (InputStream is = item.getBufferedInputStream()) {
-                logger.info("__________ Encontrou o xml configurações da conta de usuário ------");
-                user = decodeAndroidAccount(is);
-                if (user != null) {
-                    users.add(user);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        query = BasicProps.CONTENTTYPE + ":\"" + INSTAGRAM_CONTACT.toString() + "\"";
-        result = searcher.search(query);
-        for (IItemReader item : result) {
-            try (InputStream is = item.getBufferedInputStream()) {
-                logger.info("__________ Encontrou o xml de contatos ------");
-                chatContacts.addAll(decodeAndroidContacts(is));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -433,7 +391,7 @@ public class InstagramParser extends SQLite3DBParser {
             meta.set(TikaCoreProperties.TITLE, chatName + "_message_" + msgCount++); //$NON-NLS-1$
             meta.set(StandardParser.INDEXER_CONTENT_TYPE, INSTAGRAM_MESSAGE.toString());
             meta.set(ExtraProperties.PARENT_VIRTUAL_ID, parentId);
-            //meta.set(ExtraProperties.PARENT_VIEW_POSITION, String.valueOf(m.getId()));
+            meta.set(ExtraProperties.PARENT_VIEW_POSITION, String.valueOf(m.getId()));
             meta.set(ExtraProperties.USER_ACCOUNT_TYPE, INSTAGRAM);
             meta.set(ExtraProperties.MESSAGE_DATE, m.getTimeStamp().toString());
             meta.set(TikaCoreProperties.CREATED, m.getTimeStamp().toString());
@@ -459,7 +417,7 @@ public class InstagramParser extends SQLite3DBParser {
 //                }
 //            }
 //
-//            meta.set(ExtraProperties.MESSAGE_BODY, m.getData());
+              meta.set(ExtraProperties.MESSAGE_BODY, m.getData());
 //
 //            meta.set("mediaName", m.getMediaName());
 //
@@ -522,12 +480,24 @@ public class InstagramParser extends SQLite3DBParser {
         }
 
         if (chat == null) {
-            chat = new Chat(id, messageId, recipients, texto, timeStamp, from, fromMe);
+            Contact user = getUser(userId);
+            if (user == null){
+                user = new Contact(userId);
+            }
+            chat = new Chat(user, id, messageId, recipients, texto, timeStamp, from, fromMe);
             chats.add(chat);
         } else {
             Message message = new Message(messageId, recipients, texto, timeStamp, from, fromMe);
             chat.addMessage(message);
         }
+    }
+
+    private Contact getUser(String userId) {
+        for(Contact u : users){
+            if(u.getId().equals(userId))
+                return u;
+        }
+        return null;
     }
 
 }

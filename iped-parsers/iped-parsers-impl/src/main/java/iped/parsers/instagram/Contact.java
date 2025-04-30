@@ -45,6 +45,9 @@ public class Contact {
 	}
 
     public String getFullname() {
+        if(fullname == null)
+            return username;
+
         return fullname;
     }
 
