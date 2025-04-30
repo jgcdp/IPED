@@ -15,7 +15,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import iped.parsers.util.ItemInfo;
 import iped.properties.BasicProps;
 import iped.utils.EmptyInputStream;
 import org.apache.tika.config.Field;
@@ -50,7 +49,7 @@ public class InstagramParser extends SQLite3DBParser {
      *
      */
     private static final long serialVersionUID = 1L;
-    private static Logger logger = LoggerFactory.getLogger(InstagramParser.class);
+    private static final Logger logger = LoggerFactory.getLogger(InstagramParser.class);
 
     public static final String INSTAGRAM = "Instagram";
     public static final MediaType INSTAGRAM_ACCOUNT = MediaType.parse("application/x-instagram-account");
@@ -58,12 +57,13 @@ public class InstagramParser extends SQLite3DBParser {
     public static final MediaType INSTAGRAM_DB = MediaType.parse("application/x-instagram-db");
     public static final MediaType INSTAGRAM_DB_IOS = MediaType.parse("application/x-instagram-db-ios");
     public static final MediaType INSTAGRAM_CHAT = MediaType.parse("application/x-instagram-chat");
+    public static final MediaType INSTAGRAM_CONTACT_CONF = MediaType.parse("application/x-instagram-contact-conf");
     public static final MediaType INSTAGRAM_CONTACT = MediaType.parse("contact/x-instagram-contact");
     public static final MediaType INSTAGRAM_MESSAGE = MediaType.parse("message/x-instagram-message");
     public static final MediaType INSTAGRAM_ATTACHMENT = MediaType.parse("message/x-instagram-attachment");
     public static final MediaType INSTAGRAM_CALL = MediaType.parse("call/x-instagram-call");
 
-    private static Set<MediaType> SUPPORTED_TYPES = MediaType.set(INSTAGRAM_DB, INSTAGRAM_CONTACT, INSTAGRAM_USER_CONF, INSTAGRAM_DB_IOS);
+    private static final Set<MediaType> SUPPORTED_TYPES = MediaType.set(INSTAGRAM_DB, INSTAGRAM_CONTACT_CONF, INSTAGRAM_USER_CONF, INSTAGRAM_DB_IOS);
 
     // TODO improve this: prefix to show 'attachment' before body text (values
     // are sorted)
@@ -131,7 +131,7 @@ public class InstagramParser extends SQLite3DBParser {
             parseInstagramDBIOS(stream, handler, metadata, context);
         } else if (mimetype.equals(INSTAGRAM_USER_CONF.toString())) {
             parseAndroidAccount(stream, handler, metadata, context);
-        } else if (mimetype.equals(INSTAGRAM_CONTACT.toString())) {
+        } else if (mimetype.equals(INSTAGRAM_CONTACT_CONF.toString())) {
             parseChatContacts(stream, handler, metadata, context);
         }
     }
@@ -139,7 +139,29 @@ public class InstagramParser extends SQLite3DBParser {
     private void parseChatContacts(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context) {
         logger.info("---------- entrou parse CONTACTS ---------");
         try {
-            chatContacts.addAll(decodeAndroidContacts(stream));
+            List<Contact> contactsDecodes = decodeAndroidContacts(stream);
+            IItemSearcher searcher = context.get(IItemSearcher.class);
+            ReportGenerator r = new ReportGenerator(searcher);
+            EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
+                new ParsingEmbeddedDocumentExtractor(context));
+            for (Contact c : contactsDecodes) {
+                byte[] bytes = r.genarateContactHtml(c);
+                Metadata cMetadata = new Metadata();
+                cMetadata.set(StandardParser.INDEXER_CONTENT_TYPE, INSTAGRAM_CONTACT.toString());
+                cMetadata.set(TikaCoreProperties.TITLE, c.getTitle());
+                cMetadata.set(ExtraProperties.USER_NAME, c.getName());
+                cMetadata.set(ExtraProperties.USER_PHONE, c.getPhone());
+                cMetadata.set(ExtraProperties.USER_ACCOUNT, c.getId() + "");
+                cMetadata.set(ExtraProperties.USER_ACCOUNT_TYPE, INSTAGRAM);
+                cMetadata.set(ExtraProperties.USER_NOTES, c.getUsername());
+                cMetadata.set(ExtraProperties.DECODED_DATA, Boolean.TRUE.toString());
+                if (c.getAvatar() != null) {
+                    cMetadata.set(ExtraProperties.THUMBNAIL_BASE64, Base64.getEncoder().encodeToString(c.getAvatar()));
+                }
+                ByteArrayInputStream contactStream = new ByteArrayInputStream(bytes);
+                extractor.parseEmbedded(contactStream, handler, cMetadata, false);
+            }
+            chatContacts.addAll(contactsDecodes);
         } catch (ParserConfigurationException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -175,7 +197,7 @@ public class InstagramParser extends SQLite3DBParser {
                 String username = json.optString("username", "");
                 String fullName = json.optString("full_name", "");
 
-                if(getContact(id) == null) {
+                if (getContact(id) == null) {
                     contacts.add(new Contact(id, username, fullName));
                 }
             }
@@ -323,7 +345,7 @@ public class InstagramParser extends SQLite3DBParser {
         } else {
             title += "Chat";
         }
-        title += "_" + "teste";
+        title += "_" + c.getName();
         return title;
     }
 
@@ -417,7 +439,7 @@ public class InstagramParser extends SQLite3DBParser {
 //                }
 //            }
 //
-              meta.set(ExtraProperties.MESSAGE_BODY, m.getData());
+            meta.set(ExtraProperties.MESSAGE_BODY, m.getData());
 //
 //            meta.set("mediaName", m.getMediaName());
 //
@@ -454,19 +476,19 @@ public class InstagramParser extends SQLite3DBParser {
     private void addMessage(long messageId, String id, String userId, long recipientIds, long timeStamp, String texto, String messageInfoJson) throws JsonProcessingException {
         Chat chat = null;
         Contact from = null;
+        Contact recipient = null;
         boolean fromMe = false;
-        List<Contact> recipients = new ArrayList<>();
+        List<Contact> participants = new ArrayList<>();
 
         ObjectMapper objectMapper = new ObjectMapper();
 
         JsonNode rootNode = objectMapper.readTree(messageInfoJson);
         fromMe = rootNode.path("is_sent_by_viewer").asBoolean();
         String fromId = rootNode.path("user_id").asText();
-        from = new Contact(fromId);
-        JsonNode recipientArray = rootNode.path("thread_key").path("recipient_ids");
+        from = getFromAllContacts(fromId);
 
-        for (JsonNode idNode : recipientArray) {
-            recipients.add(new Contact(idNode.asText()));
+        if (from == null) {
+            from = new Contact(fromId);
         }
 
         if (chats == null) {
@@ -481,23 +503,45 @@ public class InstagramParser extends SQLite3DBParser {
 
         if (chat == null) {
             Contact user = getUser(userId);
-            if (user == null){
+            if (user == null) {
                 user = new Contact(userId);
             }
-            chat = new Chat(user, id, messageId, recipients, texto, timeStamp, from, fromMe);
+            participants.add(user);
+            JsonNode recipientArray = rootNode.path("thread_key").path("recipient_ids");
+
+            for (JsonNode idNode : recipientArray) {
+                recipient = getFromAllContacts(idNode.asText());
+
+                if (recipient == null) {
+                    recipient = new Contact(idNode.asText());
+                }
+
+                participants.add(recipient);
+            }
+
+            chat = new Chat(user, id, messageId, participants, texto, timeStamp, from, fromMe);
             chats.add(chat);
         } else {
-            Message message = new Message(messageId, recipients, texto, timeStamp, from, fromMe);
+            Message message = new Message(messageId, texto, timeStamp, from, fromMe);
             chat.addMessage(message);
         }
     }
 
     private Contact getUser(String userId) {
-        for(Contact u : users){
-            if(u.getId().equals(userId))
+        for (Contact u : users) {
+            if (u.getId().equals(userId))
                 return u;
         }
         return null;
+    }
+
+    private Contact getFromAllContacts(String id) {
+        Contact c = getUser(id);
+        if (c != null) {
+            return c;
+        } else {
+            return getContact(id);
+        }
     }
 
 }

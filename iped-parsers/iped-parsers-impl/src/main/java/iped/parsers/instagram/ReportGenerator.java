@@ -98,7 +98,7 @@ public class ReportGenerator {
 
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		PrintWriter out = new PrintWriter(new OutputStreamWriter(bout, StandardCharsets.UTF_8));
-		String title = "Chat id = " + String.valueOf(c.getId());
+		String title = c.getName();
 		if (c.isGroup()) {
 			title = Messages.getString("TelegramContact.Group") + ": " + title;
 		} else if (c.isChannel()) {
@@ -353,8 +353,10 @@ public class ReportGenerator {
 					"<div class=\"bbl\"><div class=\"aw\"><div class=\"awl\"></div></div><div class=\"incoming from\">"); //$NON-NLS-1$
 		}
 		Contact contact = message.getFrom();
-        out.println("<span style=\"font-family: Arial; color: #b4c74b;\">" //$NON-NLS-1$
-					+ message.getRecipients() + "</span><br/>"); //$NON-NLS-1$
+        if (contact != null) {
+            out.println("<span style=\"font-family: Arial; color: #b4c74b;\">" //$NON-NLS-1$
+                + format(contact.toString()) + "</span><br/>"); //$NON-NLS-1$
+        }
 
 //		if (message.getType() != null && !message.getType().isEmpty()) {
 //			out.print(format(message.getType()) + "<br>");

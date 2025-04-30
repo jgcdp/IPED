@@ -126,7 +126,7 @@ public class Contact {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		String name = this.fullname;
+		String name = getFullname();
 		if (name != null) {
 			sb.append(name.trim());
 		}

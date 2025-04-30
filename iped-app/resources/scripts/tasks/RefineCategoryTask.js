@@ -98,7 +98,7 @@ function process(e){
     }
 
     if(mime.equals("application/dita+xml") && e.getName().contains("usersBootstrapService")){
-        	e.setMediaTypeStr("contact/x-instagram-contact");
+        	e.setMediaTypeStr("application/x-instagram-contact-conf");
     }
 
 	if(categorias.indexOf("Images") > -1){
