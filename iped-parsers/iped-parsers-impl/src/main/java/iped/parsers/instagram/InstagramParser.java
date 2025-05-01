@@ -71,6 +71,7 @@ public class InstagramParser extends SQLite3DBParser {
 
     // TODO externalize to locale properties
     private static final String ATTACHMENT_MESSAGE = ATTACHMENT_PREFIX + "Attachment: ";
+    private static final String QUERY_GET_CHATS = "SELECT * FROM messages";
 
     private static boolean enabledForUfdr = false;
 
@@ -145,7 +146,7 @@ public class InstagramParser extends SQLite3DBParser {
             EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
                 new ParsingEmbeddedDocumentExtractor(context));
             for (Contact c : contactsDecodes) {
-                byte[] bytes = r.genarateContactHtml(c);
+                byte[] bytes = r.generateContactHtml(c);
                 Metadata cMetadata = new Metadata();
                 cMetadata.set(StandardParser.INDEXER_CONTENT_TYPE, INSTAGRAM_CONTACT.toString());
                 cMetadata.set(TikaCoreProperties.TITLE, c.getTitle());
@@ -231,7 +232,6 @@ public class InstagramParser extends SQLite3DBParser {
         meta.set(ExtraProperties.USER_ACCOUNT, user.getUsername());
         meta.set(ExtraProperties.USER_ACCOUNT_TYPE, INSTAGRAM);
         meta.set(ExtraProperties.DECODED_DATA, Boolean.TRUE.toString());
-        Extractor ex = new Extractor();
         IItemSearcher searcher = context.get(IItemSearcher.class);
         // ex.setSearcher(searcher);
         // ex.searchAvatarFileName(user, user.getPhotos());
@@ -242,7 +242,7 @@ public class InstagramParser extends SQLite3DBParser {
         EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
             new ParsingEmbeddedDocumentExtractor(context));
         ReportGenerator reportGenerator = new ReportGenerator(searcher);
-        byte[] bytes = reportGenerator.genarateContactHtml(user);
+        byte[] bytes = reportGenerator.generateContactHtml(user);
         ByteArrayInputStream contactStream = new ByteArrayInputStream(bytes);
         extractor.parseEmbedded(contactStream, handler, meta, false);
 
@@ -313,7 +313,7 @@ public class InstagramParser extends SQLite3DBParser {
         EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
             new ParsingEmbeddedDocumentExtractor(context));
         try (Connection conn = getConnection(stream, metadata, context)) {
-            PreparedStatement pstmt = conn.prepareStatement(Extractor.GET_CHATS);
+            PreparedStatement pstmt = conn.prepareStatement(QUERY_GET_CHATS);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -324,7 +324,8 @@ public class InstagramParser extends SQLite3DBParser {
                 long timestamp = rs.getLong("timestamp");
                 String text = rs.getString("text");
                 String messageInfoJson = rs.getString("message");
-                addMessage(messageId, chatId, userId, recipientIds, timestamp, text, messageInfoJson);
+                String messageType = rs.getString("message_type");
+                addMessage(messageId, chatId, userId, recipientIds, timestamp, text, messageInfoJson, messageType);
             }
 
             generateChat(searcher, handler, extractor);
@@ -372,20 +373,16 @@ public class InstagramParser extends SQLite3DBParser {
             chatMetadata.set(ExtraProperties.DELETED, Boolean.toString(c.isDeleted()));
             chatMetadata.set(ExtraProperties.DECODED_DATA, Boolean.TRUE.toString());
 
-//            if (c.isGroupOrChannel()) {
-//                ChatGroup cg = (ChatGroup) c;
-//                for (long id : cg.getMembers()) {
-//                    chatMetadata.add(ExtraProperties.PARTICIPANTS, e.getContact(id).toString());
-//                }
-//                for (long id : cg.getAdmins()) {
-//                    chatMetadata.add(ExtraProperties.COMMUNICATION_PREFIX + "ChannelAdmins",
-//                        e.getContact(id).toString());
-//                }
-//                int participantsCount = cg.getParticipantsCount();
-//                if (participantsCount > 0) {
-//                    chatMetadata.add(ExtraProperties.PARTICIPANTS + "Count", String.valueOf(participantsCount));
-//                }
-//            }
+            if (c.isGroup()) {
+                for (Contact p : c.getParticipants()) {
+                    chatMetadata.add(ExtraProperties.PARTICIPANTS, p.toString());
+                }
+
+                int participantsCount = c.getParticipants().size();
+                if (participantsCount > 0) {
+                    chatMetadata.add(ExtraProperties.PARTICIPANTS + "Count", String.valueOf(participantsCount));
+                }
+            }
 
             List<Message> msgSubset = c.getMessages().subList(firstMsg, nextMsg);
 
@@ -421,51 +418,30 @@ public class InstagramParser extends SQLite3DBParser {
 //            if (m.getLatitude() != null && m.getLongitude() != null) {
 //                meta.set(ExtraProperties.LOCATIONS, m.getLatitude() + ";" + m.getLongitude());
 //            }
-//            meta.set(org.apache.tika.metadata.Message.MESSAGE_FROM, m.getFrom().toString());
-//            if (m.getChat().isGroupOrChannel()) {
-//                ChatGroup groupChat = (ChatGroup) m.getChat();
-//                String to = groupChat.isGroup() ? "Group " : "Channel ";
-//                to += groupChat.getName() + " (id:" + groupChat.getId() + ")";
-//                meta.add(org.apache.tika.metadata.Message.MESSAGE_TO, to);
-//                meta.set(ExtraProperties.IS_GROUP_MESSAGE, "true");
-//            }
-//            if (meta.get(org.apache.tika.metadata.Message.MESSAGE_TO) == null) {
-//                if (m.getToId() != 0) {
-//                    meta.set(org.apache.tika.metadata.Message.MESSAGE_TO, e.getContact(m.getToId()).toString());
-//                } else if (m.isFromMe()) {
-//                    meta.set(org.apache.tika.metadata.Message.MESSAGE_TO, m.getChat().getC().toString());
-//                } else if (account != null) {
-//                    meta.set(org.apache.tika.metadata.Message.MESSAGE_TO, account.toString());
-//                }
-//            }
-//
+            meta.set(org.apache.tika.metadata.Message.MESSAGE_FROM, m.getFrom().toString());
+            if (m.getChat().isGroup()) {
+                String to = "Group ";
+                to += m.getChat().getName() + " (id:" + m.getChat().getId() + ")";
+                meta.add(org.apache.tika.metadata.Message.MESSAGE_TO, to);
+                meta.set(ExtraProperties.IS_GROUP_MESSAGE, "true");
+            }
+            if (meta.get(org.apache.tika.metadata.Message.MESSAGE_TO) == null) {
+                if (!m.getChat().getParticipants().isEmpty()) {
+                    meta.set(org.apache.tika.metadata.Message.MESSAGE_TO, m.getRecipientContact().toString());
+                } else if (m.isFromMe()) {
+                    meta.set(org.apache.tika.metadata.Message.MESSAGE_TO, m.getFrom().toString());
+                }
+            }
+
             meta.set(ExtraProperties.MESSAGE_BODY, m.getData());
-//
-//            meta.set("mediaName", m.getMediaName());
-//
+
+            meta.set("mediaName", m.getMessageType());
+
 //            if (m.getMediaMime() != null) {
 //                meta.add(ExtraProperties.MESSAGE_BODY, ATTACHMENT_MESSAGE + m.getMediaMime());
 //            }
 //            if (m.getMediaSize() != 0) {
 //                meta.set("mediaSize", Long.toString(m.getMediaSize()));
-//            }
-//            if (Util.isValidHash(m.getMediaHash())) {
-//                meta.set(StandardParser.INDEXER_CONTENT_TYPE, TELEGRAM_ATTACHMENT.toString());
-//                meta.set(ExtraProperties.LINKED_ITEMS, BasicProps.HASH + ":" + m.getMediaHash()); //$NON-NLS-1$
-//                if (!m.getChildPornSets().isEmpty()) {
-//                    meta.set("hash:status", "pedo");
-//                    for (String set : m.getChildPornSets()) {
-//                        meta.add("hash:set", set);
-//                    }
-//                }
-//                // TODO store thumb in metadata?
-//            }
-//            if (m.isPhoneCall()) {
-//                meta.set(StandardParser.INDEXER_CONTENT_TYPE, TELEGRAM_CALL.toString());
-//            }
-//            // system messages
-//            if (meta.get(ExtraProperties.MESSAGE_BODY) == null && m.getType() != null && !m.getType().isEmpty()) {
-//                meta.add(ExtraProperties.MESSAGE_BODY, m.getType().toUpperCase());
 //            }
 
             meta.set(BasicProps.LENGTH, "");
@@ -473,7 +449,7 @@ public class InstagramParser extends SQLite3DBParser {
         }
     }
 
-    private void addMessage(long messageId, String id, String userId, long recipientIds, long timeStamp, String texto, String messageInfoJson) throws JsonProcessingException {
+    private void addMessage(long messageId, String id, String userId, long recipientIds, long timeStamp, String texto, String messageInfoJson, String messageType) throws JsonProcessingException {
         Chat chat = null;
         Contact from = null;
         Contact recipient = null;
@@ -483,9 +459,12 @@ public class InstagramParser extends SQLite3DBParser {
         ObjectMapper objectMapper = new ObjectMapper();
 
         JsonNode rootNode = objectMapper.readTree(messageInfoJson);
-        fromMe = rootNode.path("is_sent_by_viewer").asBoolean();
         String fromId = rootNode.path("user_id").asText();
         from = getFromAllContacts(fromId);
+
+        if(getUser(fromId) != null || rootNode.path("is_sent_by_viewer").asBoolean()){
+            fromMe = true;
+        }
 
         if (from == null) {
             from = new Contact(fromId);
@@ -519,10 +498,10 @@ public class InstagramParser extends SQLite3DBParser {
                 participants.add(recipient);
             }
 
-            chat = new Chat(user, id, messageId, participants, texto, timeStamp, from, fromMe);
+            chat = new Chat(user, id, messageId, participants, texto, timeStamp, from, fromMe, messageType);
             chats.add(chat);
         } else {
-            Message message = new Message(messageId, texto, timeStamp, from, fromMe);
+            Message message = new Message(chat, messageId, texto, timeStamp, from, fromMe, messageType);
             chat.addMessage(message);
         }
     }

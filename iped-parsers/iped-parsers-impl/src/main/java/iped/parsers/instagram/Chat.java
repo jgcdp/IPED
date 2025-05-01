@@ -12,12 +12,12 @@ public class Chat {
     private String id;
     private Contact user;
 
-    public Chat(Contact user, String id, long messageId, List<Contact> participants, String data, long timeStamp, Contact from, boolean fromMe) {
+    public Chat(Contact user, String id, long messageId, List<Contact> participants, String data, long timeStamp, Contact from, boolean fromMe, String messageType) {
         this.user = user;
         this.participants = participants;
         isGroup = participants.size() > 2;
         this.id = id;
-        Message message = new Message(messageId, data, timeStamp, from, fromMe);
+        Message message = new Message(this, messageId, data, timeStamp, from, fromMe, messageType);
         this.messages.add(message);
     }
 
@@ -39,6 +39,10 @@ public class Chat {
 
     public boolean isGroup() {
         return isGroup;
+    }
+
+    public List<Contact> getParticipants() {
+        return participants;
     }
 
     public List<Message> getMessages() {

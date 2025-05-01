@@ -97,7 +97,7 @@ function process(e){
     		e.setMediaTypeStr("application/x-instagram-user-conf");
     }
 
-    if(mime.equals("application/dita+xml") && e.getName().contains("usersBootstrapService")){
+    if(mime.equals("application/dita+xml") && e.getName().contains("usersBootstrapService.xml")){
         	e.setMediaTypeStr("application/x-instagram-contact-conf");
     }
 

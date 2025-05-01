@@ -308,6 +308,7 @@
     <mime-type type="application/x-telegram-chat">
         <sub-class-of type="text/html"/>
     </mime-type>
+
     <mime-type type="contact/x-telegram-contact">
         <sub-class-of type="text/html"/>
     </mime-type>

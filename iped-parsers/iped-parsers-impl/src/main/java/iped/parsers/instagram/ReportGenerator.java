@@ -6,11 +6,6 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 
-//import iped.parsers.instagram.Chat;
-//import iped.parsers.instagram.Message;
-//import iped.parsers.instagram.PoolData;
-//import iped.parsers.instagram.TagHtml;
-//import iped.parsers.instagram.Util;
 import iped.parsers.telegram.Util;
 import iped.parsers.util.Messages;
 import iped.search.IItemSearcher;
@@ -56,7 +51,7 @@ public class ReportGenerator {
 		return ret;
 	}
 
-	public byte[] genarateContactHtml(Contact contact) {
+	public byte[] generateContactHtml(Contact contact) {
 		ByteArrayOutputStream bout = new ByteArrayOutputStream();
 		PrintWriter out = new PrintWriter(new OutputStreamWriter(bout, StandardCharsets.UTF_8)); // $NON-NLS-1$
 
@@ -100,16 +95,15 @@ public class ReportGenerator {
 		PrintWriter out = new PrintWriter(new OutputStreamWriter(bout, StandardCharsets.UTF_8));
 		String title = c.getName();
 		if (c.isGroup()) {
-			title = Messages.getString("TelegramContact.Group") + ": " + title;
-		} else if (c.isChannel()) {
-			title = Messages.getString("TelegramContact.Channel") + ": " + title;
-		} else {
-			if (c.getUser().getPhone() != null) {
-				title += " (" + Messages.getString("TelegramContact.Phone") + " " + c.getUser().getPhone() + ")";
-			} else if (c.getUser().getUsername() != null) {
-				title += " (" + Messages.getString("TelegramContact.Username") + " " + c.getUser().getUsername() + ")";
-			}
+			title = "Instagram Group: " + title;
 		}
+//        else {
+//			if (c.getUser().getPhone() != null) {
+//				title += " (" + Messages.getString("TelegramContact.Phone") + " " + c.getUser().getPhone() + ")";
+//			} else if (c.getUser().getUsername() != null) {
+//				title += " (" + Messages.getString("TelegramContact.Username") + " " + c.getUser().getUsername() + ")";
+//			}
+//		}
 
 		printMessageFileHeader(out, title, null, false, false, false);
 
@@ -327,13 +321,13 @@ public class ReportGenerator {
 //		out.println("<br/>");
 //
 //	}
-//
+
 //	private void printGeoLocation(PrintWriter out, Message message) {
 //		// toDo better handling Geo locations
 //		out.println("Latitude: " + message.getLatitude() + "<br/>");
 //		out.println("Longitude: " + message.getLongitude());
 //	}
-//
+
 //	private void printCheckbox(PrintWriter out, String hash) {
 //		out.println("<input class=\"check\" type=\"checkbox\" onclick=\"app.check('hash:" + hash
 //				+ "', this.checked)\" name=\"" + hash + "\" />");
@@ -358,8 +352,8 @@ public class ReportGenerator {
                 + format(contact.toString()) + "</span><br/>"); //$NON-NLS-1$
         }
 
-//		if (message.getType() != null && !message.getType().isEmpty()) {
-//			out.print(format(message.getType()) + "<br>");
+//		if (message.getMessageType() != null && !message.getMessageType().isEmpty()) {
+//			out.print(format(message.getMessageType()) + "<br>");
 //		}
 //		if (message.getMediaMime() != null) {
 //			if (message.getMediaMime().equals("geo")) {

@@ -45,10 +45,13 @@ public class Contact {
 	}
 
     public String getFullname() {
-        if(fullname == null)
-            return username;
+        if(fullname != null)
+            return fullname;
 
-        return fullname;
+        if(name != null)
+            return name;
+
+        return username;
     }
 
     public String getName() {

@@ -242,6 +242,7 @@ public class IconManager {
         icon = availableIconsMap.get("instagram");
         if (icon != null) {
             mimeIconMap.put("application/x-ufed-chat-preview-instagram", icon);
+            mimeIconMap.put("application/x-instagram-chat", icon);
         }
 
         icon = availableIconsMap.get("skype");
