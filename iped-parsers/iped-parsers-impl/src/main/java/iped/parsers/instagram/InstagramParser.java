@@ -6,12 +6,16 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.ParseException;
 import java.util.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.dd.plist.NSObject;
+import com.dd.plist.PropertyListFormatException;
+import com.dd.plist.PropertyListParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,16 +58,18 @@ public class InstagramParser extends SQLite3DBParser {
     public static final String INSTAGRAM = "Instagram";
     public static final MediaType INSTAGRAM_ACCOUNT = MediaType.parse("application/x-instagram-account");
     public static final MediaType INSTAGRAM_USER_CONF = MediaType.parse("application/x-instagram-user-conf");
+    public static final MediaType INSTAGRAM_USER_CONF_IOS = MediaType.parse("application/x-instagram-user-conf-ios");
     public static final MediaType INSTAGRAM_DB = MediaType.parse("application/x-instagram-db");
     public static final MediaType INSTAGRAM_DB_IOS = MediaType.parse("application/x-instagram-db-ios");
     public static final MediaType INSTAGRAM_CHAT = MediaType.parse("application/x-instagram-chat");
     public static final MediaType INSTAGRAM_CONTACT_CONF = MediaType.parse("application/x-instagram-contact-conf");
+    public static final MediaType INSTAGRAM_CONTACT_CONF_IOS = MediaType.parse("application/x-instagram-contact-conf-ios");
     public static final MediaType INSTAGRAM_CONTACT = MediaType.parse("contact/x-instagram-contact");
     public static final MediaType INSTAGRAM_MESSAGE = MediaType.parse("message/x-instagram-message");
     public static final MediaType INSTAGRAM_ATTACHMENT = MediaType.parse("message/x-instagram-attachment");
     public static final MediaType INSTAGRAM_CALL = MediaType.parse("call/x-instagram-call");
 
-    private static final Set<MediaType> SUPPORTED_TYPES = MediaType.set(INSTAGRAM_DB, INSTAGRAM_CONTACT_CONF, INSTAGRAM_USER_CONF, INSTAGRAM_DB_IOS);
+    private static final Set<MediaType> SUPPORTED_TYPES = MediaType.set(INSTAGRAM_DB, INSTAGRAM_CONTACT_CONF, INSTAGRAM_USER_CONF, INSTAGRAM_DB_IOS, INSTAGRAM_CONTACT_CONF_IOS, INSTAGRAM_USER_CONF_IOS);
 
     // TODO improve this: prefix to show 'attachment' before body text (values
     // are sorted)
@@ -71,7 +77,7 @@ public class InstagramParser extends SQLite3DBParser {
 
     // TODO externalize to locale properties
     private static final String ATTACHMENT_MESSAGE = ATTACHMENT_PREFIX + "Attachment: ";
-    private static final String QUERY_GET_CHATS = "SELECT * FROM messages";
+    private static final String QUERY_GET_MESSAGES = "SELECT * FROM messages";
 
     private static boolean enabledForUfdr = false;
 
@@ -134,35 +140,55 @@ public class InstagramParser extends SQLite3DBParser {
             parseAndroidAccount(stream, handler, metadata, context);
         } else if (mimetype.equals(INSTAGRAM_CONTACT_CONF.toString())) {
             parseChatContacts(stream, handler, metadata, context);
+        } else if (mimetype.equals(INSTAGRAM_CONTACT_CONF_IOS.toString())) {
+            parseChatContactsIOS(stream, handler, metadata, context);
+        } else if (mimetype.equals(INSTAGRAM_USER_CONF_IOS.toString())) {
+            parseIOSAccount(stream, handler, metadata, context);
         }
     }
 
+    private void parseIOSAccount(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context) throws TikaException {
+        try {
+            users = (ArrayList<Contact>) decodeIOSAccount(stream);
+            for (Contact u : users) {
+                createAccountHTML(u, handler, context);
+            }
+
+        } catch (Exception e) {
+            throw new TikaException("Error parsing instagram account", e);
+        }
+    }
+
+
+    private List<Contact> decodeIOSAccount(InputStream stream) throws PropertyListFormatException, IOException, ParseException, ParserConfigurationException, SAXException {
+        List<Contact> usersDecoded = new ArrayList<>();
+        NSObject root = PropertyListParser.parse(stream);
+
+
+        return usersDecoded;
+    }
+
+    private void parseChatContactsIOS(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context) {
+        try {
+            List<Contact> contactsDecodes = decodeIOSContacts(stream);
+            extractContacts(context, contactsDecodes, handler);
+        } catch (IOException | PropertyListFormatException | ParseException | ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        } catch (SAXException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private List<Contact> decodeIOSContacts(InputStream stream) throws PropertyListFormatException, IOException, ParseException, ParserConfigurationException, SAXException {
+        List<Contact> contacts = new ArrayList<>();
+        NSObject root = PropertyListParser.parse(stream);
+        return contacts;
+    }
+
     private void parseChatContacts(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context) {
-        logger.info("---------- entrou parse CONTACTS ---------");
         try {
             List<Contact> contactsDecodes = decodeAndroidContacts(stream);
-            IItemSearcher searcher = context.get(IItemSearcher.class);
-            ReportGenerator r = new ReportGenerator(searcher);
-            EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
-                new ParsingEmbeddedDocumentExtractor(context));
-            for (Contact c : contactsDecodes) {
-                byte[] bytes = r.generateContactHtml(c);
-                Metadata cMetadata = new Metadata();
-                cMetadata.set(StandardParser.INDEXER_CONTENT_TYPE, INSTAGRAM_CONTACT.toString());
-                cMetadata.set(TikaCoreProperties.TITLE, c.toString());
-                cMetadata.set(ExtraProperties.USER_NAME, c.getName());
-                cMetadata.set(ExtraProperties.USER_PHONE, c.getPhone());
-                cMetadata.set(ExtraProperties.USER_ACCOUNT, c.getId() + "");
-                cMetadata.set(ExtraProperties.USER_ACCOUNT_TYPE, INSTAGRAM);
-                cMetadata.set(ExtraProperties.USER_NOTES, c.getUsername());
-                cMetadata.set(ExtraProperties.DECODED_DATA, Boolean.TRUE.toString());
-                if (c.getAvatar() != null) {
-                    cMetadata.set(ExtraProperties.THUMBNAIL_BASE64, Base64.getEncoder().encodeToString(c.getAvatar()));
-                }
-                ByteArrayInputStream contactStream = new ByteArrayInputStream(bytes);
-                extractor.parseEmbedded(contactStream, handler, cMetadata, false);
-            }
-            chatContacts.addAll(contactsDecodes);
+            extractContacts(context, contactsDecodes, handler);
         } catch (ParserConfigurationException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -170,6 +196,31 @@ public class InstagramParser extends SQLite3DBParser {
         } catch (SAXException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void extractContacts(ParseContext context, List<Contact> contactsDecodes, ContentHandler handler) throws IOException, SAXException {
+        IItemSearcher searcher = context.get(IItemSearcher.class);
+        ReportGenerator r = new ReportGenerator(searcher);
+        EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
+            new ParsingEmbeddedDocumentExtractor(context));
+        for (Contact c : contactsDecodes) {
+            byte[] bytes = r.generateContactHtml(c);
+            Metadata cMetadata = new Metadata();
+            cMetadata.set(StandardParser.INDEXER_CONTENT_TYPE, INSTAGRAM_CONTACT.toString());
+            cMetadata.set(TikaCoreProperties.TITLE, c.toString());
+            cMetadata.set(ExtraProperties.USER_NAME, c.getName());
+            cMetadata.set(ExtraProperties.USER_PHONE, c.getPhone());
+            cMetadata.set(ExtraProperties.USER_ACCOUNT, c.getId() + "");
+            cMetadata.set(ExtraProperties.USER_ACCOUNT_TYPE, INSTAGRAM);
+            cMetadata.set(ExtraProperties.USER_NOTES, c.getUsername());
+            cMetadata.set(ExtraProperties.DECODED_DATA, Boolean.TRUE.toString());
+            if (c.getAvatar() != null) {
+                cMetadata.set(ExtraProperties.THUMBNAIL_BASE64, Base64.getEncoder().encodeToString(c.getAvatar()));
+            }
+            ByteArrayInputStream contactStream = new ByteArrayInputStream(bytes);
+            extractor.parseEmbedded(contactStream, handler, cMetadata, false);
+        }
+        chatContacts.addAll(contactsDecodes);
     }
 
     private List<Contact> decodeAndroidContacts(InputStream stream) throws ParserConfigurationException, IOException, SAXException {
@@ -210,7 +261,6 @@ public class InstagramParser extends SQLite3DBParser {
                                      ParseContext context) throws SAXException, IOException, TikaException {
 
         try {
-            logger.info("---------- entrou parse android ---------");
             users = (ArrayList<Contact>) decodeAndroidAccount(stream);
             for (Contact u : users) {
                 createAccountHTML(u, handler, context);
@@ -249,7 +299,7 @@ public class InstagramParser extends SQLite3DBParser {
     }
 
     private List<Contact> decodeAndroidAccount(InputStream xmlInputStream) {
-        List<Contact> usersDecodes = new ArrayList<>();
+        List<Contact> usersDecoded = new ArrayList<>();
         Contact user = null;
 
         try {
@@ -272,7 +322,7 @@ public class InstagramParser extends SQLite3DBParser {
 
             if (rawJsonString == null) {
                 logger.info("user_access_map string not found.");
-                return usersDecodes;
+                return usersDecoded;
             }
 
             // Decode escaped XML entities
@@ -289,20 +339,45 @@ public class InstagramParser extends SQLite3DBParser {
                 user = new Contact(userInfo.optString("id"));
                 user.setUsername(userInfo.optString("username"));
                 user.setFullname(userInfo.optString("full_name"));
-                usersDecodes.add(user);
+                usersDecoded.add(user);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
 
-        return usersDecodes;
+        return usersDecoded;
     }
 
     private void parseInstagramDBIOS(InputStream stream, ContentHandler handler, Metadata metadata,
-                                     ParseContext context) {
-        // TODO Auto-generated method stub
+                                     ParseContext context) throws TikaException {
+        logger.info("--- PARSE DB IOS ---");
+        IItemSearcher searcher = context.get(IItemSearcher.class);
+        EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
+            new ParsingEmbeddedDocumentExtractor(context));
+        try (Connection conn = getConnection(stream, metadata, context)) {
+            PreparedStatement pstmt = conn.prepareStatement(QUERY_GET_MESSAGES);
+            ResultSet rs = pstmt.executeQuery();
 
+            while (rs.next()) {
+                String messageId = rs.getString("message_id");
+                String chatId = rs.getString("thread_id");
+                byte[] messagePlist = rs.getBytes("archive");
+                addMessageIOS(messageId, chatId, messagePlist);
+            }
+
+            //generateChat(searcher, handler, extractor);
+
+
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            throw new TikaException("Error parsing instagram database", e1);
+        }
+
+    }
+
+    private void addMessageIOS(String messageId, String chatId, byte[] messagePlist) throws PropertyListFormatException, IOException, ParseException, ParserConfigurationException, SAXException {
+        NSObject root = PropertyListParser.parse(messagePlist);
     }
 
     private void parseInstagramDBAndroid(InputStream stream, ContentHandler handler, Metadata metadata,
@@ -313,19 +388,18 @@ public class InstagramParser extends SQLite3DBParser {
         EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
             new ParsingEmbeddedDocumentExtractor(context));
         try (Connection conn = getConnection(stream, metadata, context)) {
-            PreparedStatement pstmt = conn.prepareStatement(QUERY_GET_CHATS);
+            PreparedStatement pstmt = conn.prepareStatement(QUERY_GET_MESSAGES);
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                long messageId = rs.getLong("_id");
+                String messageId = rs.getString("_id");
                 String chatId = rs.getString("thread_id");
                 String userId = rs.getString("user_id");
-                long recipientIds = rs.getLong("recipient_ids");
                 long timestamp = rs.getLong("timestamp");
                 String text = rs.getString("text");
                 String messageInfoJson = rs.getString("message");
                 String messageType = rs.getString("message_type");
-                addMessage(messageId, chatId, userId, recipientIds, timestamp, text, messageInfoJson, messageType);
+                addMessageAndroid(messageId, chatId, userId, timestamp, text, messageInfoJson, messageType);
             }
 
             generateChat(searcher, handler, extractor);
@@ -410,7 +484,7 @@ public class InstagramParser extends SQLite3DBParser {
             meta.set(TikaCoreProperties.TITLE, chatName + "_message_" + msgCount++); //$NON-NLS-1$
             meta.set(StandardParser.INDEXER_CONTENT_TYPE, INSTAGRAM_MESSAGE.toString());
             meta.set(ExtraProperties.PARENT_VIRTUAL_ID, parentId);
-            meta.set(ExtraProperties.PARENT_VIEW_POSITION, String.valueOf(m.getId()));
+            meta.set(ExtraProperties.PARENT_VIEW_POSITION, m.getId());
             meta.set(ExtraProperties.USER_ACCOUNT_TYPE, INSTAGRAM);
             meta.set(ExtraProperties.MESSAGE_DATE, m.getTimeStamp().toString());
             meta.set(TikaCoreProperties.CREATED, m.getTimeStamp().toString());
@@ -449,7 +523,7 @@ public class InstagramParser extends SQLite3DBParser {
         }
     }
 
-    private void addMessage(long messageId, String id, String userId, long recipientIds, long timeStamp, String texto, String messageInfoJson, String messageType) throws JsonProcessingException {
+    private void addMessageAndroid(String messageId, String id, String userId, long timeStamp, String texto, String messageInfoJson, String messageType) throws JsonProcessingException {
         Chat chat = null;
         Contact from = null;
         Contact recipient = null;
@@ -462,7 +536,7 @@ public class InstagramParser extends SQLite3DBParser {
         String fromId = rootNode.path("user_id").asText();
         from = getFromAllContacts(fromId);
 
-        if(getUser(fromId) != null || rootNode.path("is_sent_by_viewer").asBoolean()){
+        if (getUser(fromId) != null || rootNode.path("is_sent_by_viewer").asBoolean()) {
             fromMe = true;
         }
 

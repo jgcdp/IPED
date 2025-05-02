@@ -12,7 +12,7 @@ public class Chat {
     private String id;
     private Contact user;
 
-    public Chat(Contact user, String id, long messageId, List<Contact> participants, String data, long timeStamp, Contact from, boolean fromMe, String messageType) {
+    public Chat(Contact user, String id, String messageId, List<Contact> participants, String data, long timeStamp, Contact from, boolean fromMe, String messageType) {
         this.user = user;
         this.participants = participants;
         isGroup = participants.size() > 2;

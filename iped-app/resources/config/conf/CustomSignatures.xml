@@ -330,14 +330,29 @@
         <glob pattern="com.instagram.android_preferences.xml"/>
     </mime-type>
 
+    <mime-type type="application/x-instagram-user-conf-ios">
+        <sub-class-of type="application/x-bplist"/>
+        <glob pattern="group.com.burbn.instagram.plist"/>
+    </mime-type>
+
     <mime-type type="application/x-instagram-contact-conf">
         <sub-class-of type="application/dita+xml"/>
         <glob pattern="*_usersBootstrapService.xml"/>
     </mime-type>
 
+    <mime-type type="application/x-instagram-contact-conf-ios">
+        <sub-class-of type="application/x-bplist"/>
+        <glob pattern="shared_bootstraps.plist"/>
+    </mime-type>
+
     <mime-type type="application/x-instagram-db">
         <sub-class-of type="application/x-sqlite3"/>
         <glob pattern="direct.db"/>
+    </mime-type>
+
+    <mime-type type="application/x-instagram-db-ios">
+        <sub-class-of type="application/x-sqlite3"/>
+        <glob pattern="teste.db"/>
     </mime-type>
 
     <mime-type type="application/x-instagram-chat">

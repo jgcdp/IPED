@@ -4,7 +4,7 @@ package iped.parsers.instagram;
 import java.util.Date;
 
 public class Message {
-    private long id;
+    private String id;
     private String data;
     private String messageType;
     private Date timeStamp = null;
@@ -13,7 +13,7 @@ public class Message {
     private Contact from = null;
     Chat chat;
 
-    public Message(Chat chat, long id, String data, long timeStamp, Contact from, boolean fromMe, String messageType) {
+    public Message(Chat chat, String id, String data, long timeStamp, Contact from, boolean fromMe, String messageType) {
         this.chat = chat;
         this.id = id;
         this.data = (data == null || data.isEmpty()) ? messageType : data;
@@ -51,7 +51,7 @@ public class Message {
         return fromMe;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 

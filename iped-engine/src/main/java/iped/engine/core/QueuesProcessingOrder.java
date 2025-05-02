@@ -73,7 +73,9 @@ public class QueuesProcessingOrder {
         mediaTypes.put(TelegramParser.TELEGRAM_DB_IOS, 3);
 
         mediaTypes.put(InstagramParser.INSTAGRAM_USER_CONF, 2);
+        mediaTypes.put(InstagramParser.INSTAGRAM_USER_CONF_IOS, 2);
         mediaTypes.put(InstagramParser.INSTAGRAM_CONTACT_CONF, 2);
+        mediaTypes.put(InstagramParser.INSTAGRAM_CONTACT_CONF_IOS, 2);
         mediaTypes.put(InstagramParser.INSTAGRAM_DB, 3);
         mediaTypes.put(InstagramParser.INSTAGRAM_DB_IOS, 3);
 
