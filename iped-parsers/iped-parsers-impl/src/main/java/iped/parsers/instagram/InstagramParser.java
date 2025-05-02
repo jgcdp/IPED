@@ -149,7 +149,7 @@ public class InstagramParser extends SQLite3DBParser {
                 byte[] bytes = r.generateContactHtml(c);
                 Metadata cMetadata = new Metadata();
                 cMetadata.set(StandardParser.INDEXER_CONTENT_TYPE, INSTAGRAM_CONTACT.toString());
-                cMetadata.set(TikaCoreProperties.TITLE, c.getTitle());
+                cMetadata.set(TikaCoreProperties.TITLE, c.toString());
                 cMetadata.set(ExtraProperties.USER_NAME, c.getName());
                 cMetadata.set(ExtraProperties.USER_PHONE, c.getPhone());
                 cMetadata.set(ExtraProperties.USER_ACCOUNT, c.getId() + "");
