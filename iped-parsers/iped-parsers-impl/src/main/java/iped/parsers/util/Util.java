@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collections;
@@ -234,7 +235,7 @@ public class Util {
         t.setDaemon(true);
         t.start();
     }
-    
+
     public static void logInputStream(final InputStream stream, final Logger logger) {
         Thread t = new Thread() {
             @Override
@@ -482,6 +483,14 @@ public class Util {
             }
             return file;
         }
+    }
+
+    public static int fromBytesToInt(byte[] bytes) {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.position(4 - bytes.length); // right-align
+        buffer.put(bytes);
+        buffer.rewind();
+        return buffer.getInt();
     }
 
 }

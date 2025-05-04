@@ -26,6 +26,10 @@ public class Contact {
         this.fullname = fullName;
     }
 
+    public Contact() {
+
+    }
+
     public String getId() {
 		return id;
 	}

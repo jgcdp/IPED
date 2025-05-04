@@ -6,19 +6,20 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.*;
+import java.util.Base64;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import com.dd.plist.NSObject;
-import com.dd.plist.PropertyListFormatException;
-import com.dd.plist.PropertyListParser;
+import com.dd.plist.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import iped.parsers.util.Util;
 import iped.properties.BasicProps;
 import iped.utils.EmptyInputStream;
 import org.apache.tika.config.Field;
@@ -78,6 +79,7 @@ public class InstagramParser extends SQLite3DBParser {
     // TODO externalize to locale properties
     private static final String ATTACHMENT_MESSAGE = ATTACHMENT_PREFIX + "Attachment: ";
     private static final String QUERY_GET_MESSAGES = "SELECT * FROM messages";
+    private static final String QUERY_GET_MESSAGE_THREAD = "SELECT * FROM threads WHERE thread_id = ?";
 
     private static boolean enabledForUfdr = false;
 
@@ -124,7 +126,6 @@ public class InstagramParser extends SQLite3DBParser {
     public void parse(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context)
         throws IOException, SAXException, TikaException {
 
-        logger.info("---------- entrou parse inicial ---------");
         IItemReader item = context.get(IItemReader.class);
         if ((!enabledForUfdr || PhoneParsingConfig.isExternalPhoneParsersOnly())
             && PhoneParsingConfig.isFromUfdrDatasourceReader(item)) {
@@ -162,16 +163,65 @@ public class InstagramParser extends SQLite3DBParser {
 
     private List<Contact> decodeIOSAccount(InputStream stream) throws PropertyListFormatException, IOException, ParseException, ParserConfigurationException, SAXException {
         List<Contact> usersDecoded = new ArrayList<>();
-        NSObject root = PropertyListParser.parse(stream);
+        NSArray primaryArray = null;
+        NSDictionary root = (NSDictionary) PropertyListParser.parse(stream);
+        if (root.containsKey("all-logged-in-users-account-linking-infos")) {
+            NSDictionary usersConfig = (NSDictionary) root.objectForKey("all-logged-in-users-account-linking-infos");
+            for (NSObject userConfig : usersConfig.values()) {
+                byte[] userPlist = ((NSData) userConfig).bytes();
+                NSDictionary userPlistRoot = (NSDictionary) PropertyListParser.parse(userPlist);
 
+                for (String key : userPlistRoot.allKeys()) {
+                    NSObject value = userPlistRoot.objectForKey(key);
+                    if (value instanceof NSArray) {
+                        primaryArray = (NSArray) value;
+                        break;
+                    }
+                }
 
+                if (primaryArray == null)
+                    return usersDecoded;
+
+                for (NSObject element : primaryArray.getArray()) {
+                    if (element instanceof NSDictionary) {
+                        if (((NSDictionary) element).containsKey("NS.keys") && ((NSDictionary) element).containsKey("NS.objects")) {
+                            NSArray arrayIndexKeys = (NSArray) ((NSDictionary) element).objectForKey("NS.keys");
+                            NSArray arrayIndexObjects = (NSArray) ((NSDictionary) element).objectForKey("NS.objects");
+                            Contact user = new Contact();
+                            String infoType, id, userName, fullName;
+
+                            for (int i = 0, indexKeyValue, indexObjectValue; i < arrayIndexKeys.count() && i < arrayIndexObjects.count(); i++) {
+                                indexKeyValue = Util.fromBytesToInt(((UID) arrayIndexKeys.getArray()[i]).getBytes());
+                                indexObjectValue = Util.fromBytesToInt(((UID) arrayIndexObjects.getArray()[i]).getBytes());
+                                infoType = ((NSString) primaryArray.getArray()[indexKeyValue]).getContent();
+
+                                if (infoType.equals("full_name")) {
+                                    fullName = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                                    user.setFullname(fullName);
+                                } else if (infoType.equals("id")) {
+                                    id = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                                    user.setId(id);
+                                } else if (infoType.equals("username")) {
+                                    userName = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                                    user.setUsername(userName);
+                                }
+                            }
+
+                            if (user.getId() != null) {
+                                usersDecoded.add(user);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return usersDecoded;
     }
 
     private void parseChatContactsIOS(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context) {
         try {
-            List<Contact> contactsDecodes = decodeIOSContacts(stream);
-            extractContacts(context, contactsDecodes, handler);
+            List<Contact> contactsDecoded = decodeIOSContacts(stream);
+            extractContacts(context, contactsDecoded, handler);
         } catch (IOException | PropertyListFormatException | ParseException | ParserConfigurationException e) {
             throw new RuntimeException(e);
         } catch (SAXException e) {
@@ -181,14 +231,50 @@ public class InstagramParser extends SQLite3DBParser {
 
     private List<Contact> decodeIOSContacts(InputStream stream) throws PropertyListFormatException, IOException, ParseException, ParserConfigurationException, SAXException {
         List<Contact> contacts = new ArrayList<>();
-        NSObject root = PropertyListParser.parse(stream);
+        Contact contact = null;
+        NSDictionary root = (NSDictionary) PropertyListParser.parse(stream);
+        NSArray array = null;
+
+        for (String key : root.allKeys()) {
+            NSObject value = root.objectForKey(key);
+            if (value instanceof NSArray) {
+                array = (NSArray) value;
+                break;
+            }
+        }
+
+        int idArrayValue, userNameArrayValue, fullNameArrayValue;
+        String id, userName, fullName;
+        UID value;
+
+        for (NSObject element : array.getArray()) {
+            if (element instanceof NSDictionary) {
+                if (((NSDictionary) element).containsKey("userName")) {
+                    value = (UID) ((NSDictionary) element).objectForKey("pk");
+                    idArrayValue = Util.fromBytesToInt(value.getBytes());
+                    id = ((NSString) array.getArray()[idArrayValue]).getContent();
+
+                    value = (UID) ((NSDictionary) element).objectForKey("userName");
+                    userNameArrayValue = Util.fromBytesToInt(value.getBytes());
+                    userName = ((NSString) array.getArray()[userNameArrayValue]).getContent();
+
+                    value = (UID) ((NSDictionary) element).objectForKey("fullName");
+                    fullNameArrayValue = Util.fromBytesToInt(value.getBytes());
+                    fullName = ((NSString) array.getArray()[fullNameArrayValue]).getContent();
+
+                    contacts.add(new Contact(id, userName, fullName));
+                }
+            }
+        }
+
         return contacts;
     }
 
-    private void parseChatContacts(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext context) {
+    private void parseChatContacts(InputStream stream, ContentHandler handler, Metadata metadata, ParseContext
+        context) {
         try {
-            List<Contact> contactsDecodes = decodeAndroidContacts(stream);
-            extractContacts(context, contactsDecodes, handler);
+            List<Contact> contactsDecoded = decodeAndroidContacts(stream);
+            extractContacts(context, contactsDecoded, handler);
         } catch (ParserConfigurationException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -198,7 +284,8 @@ public class InstagramParser extends SQLite3DBParser {
         }
     }
 
-    private void extractContacts(ParseContext context, List<Contact> contactsDecodes, ContentHandler handler) throws IOException, SAXException {
+    private void extractContacts(ParseContext context, List<Contact> contactsDecodes, ContentHandler handler) throws
+        IOException, SAXException {
         IItemSearcher searcher = context.get(IItemSearcher.class);
         ReportGenerator r = new ReportGenerator(searcher);
         EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
@@ -223,7 +310,8 @@ public class InstagramParser extends SQLite3DBParser {
         chatContacts.addAll(contactsDecodes);
     }
 
-    private List<Contact> decodeAndroidContacts(InputStream stream) throws ParserConfigurationException, IOException, SAXException {
+    private List<Contact> decodeAndroidContacts(InputStream stream) throws
+        ParserConfigurationException, IOException, SAXException {
         List<Contact> contacts = new ArrayList<>();
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -363,10 +451,10 @@ public class InstagramParser extends SQLite3DBParser {
                 String messageId = rs.getString("message_id");
                 String chatId = rs.getString("thread_id");
                 byte[] messagePlist = rs.getBytes("archive");
-                addMessageIOS(messageId, chatId, messagePlist);
+                addMessageIOS(messageId, chatId, messagePlist, conn);
             }
 
-            //generateChat(searcher, handler, extractor);
+            generateChat(searcher, handler, extractor);
 
 
         } catch (Exception e1) {
@@ -376,14 +464,120 @@ public class InstagramParser extends SQLite3DBParser {
 
     }
 
-    private void addMessageIOS(String messageId, String chatId, byte[] messagePlist) throws PropertyListFormatException, IOException, ParseException, ParserConfigurationException, SAXException {
-        NSObject root = PropertyListParser.parse(messagePlist);
+    private void addMessageIOS(String messageId, String chatId, byte[] messagePlist, Connection conn) throws
+        PropertyListFormatException, IOException, ParseException, ParserConfigurationException, SAXException, SQLException {
+        NSDictionary root = (NSDictionary) PropertyListParser.parse(messagePlist);
+        NSArray primaryArray = null;
+        int indexObjectValue;
+        String fromId = null;
+        String data = null;
+        String messageType = null;
+        long timestamp = 0;
+        Chat chat = null;
+        boolean fromMe = false;
+        Contact from = null;
+        Contact user = null;
+
+        for (Chat chatRunner : chats) {
+            if (chatRunner.getId().equals(chatId)) {
+                chat = chatRunner;
+            }
+        }
+
+        for (String key : root.allKeys()) {
+            NSObject value = root.objectForKey(key);
+            if (value instanceof NSArray) {
+                primaryArray = (NSArray) value;
+                break;
+            }
+        }
+
+        if (primaryArray == null)
+            return;
+
+        for (NSObject element : primaryArray.getArray()) {
+            if (element instanceof NSDictionary) {
+                if (((NSDictionary) element).containsKey("NSString*senderPk")) {
+                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("NSString*senderPk")).getBytes());
+                    fromId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                } else if (((NSDictionary) element).containsKey("NS.time")) {
+//                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("NS.time")).getBytes());
+//                    fromId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                } else if (((NSDictionary) element).containsKey("NSString*string")) {
+                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("NSString*string")).getBytes());
+                    data = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                } else if (((NSDictionary) element).containsKey("codedSubtype")) {
+                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("codedSubtype")).getBytes());
+                    messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                }
+            }
+        }
+
+        // needs to get another plist from another sqlite table.
+        if (chat == null) {
+            PreparedStatement pstmt = conn.prepareStatement(QUERY_GET_MESSAGE_THREAD);
+            pstmt.setString(1, chatId);
+            ResultSet rs = pstmt.executeQuery();
+            String userId = rs.getString("viewer_id");
+            byte[] metadataPlist = rs.getBytes("metadata");
+            root = (NSDictionary) PropertyListParser.parse(metadataPlist);
+            primaryArray = null;
+            List<Contact> participants = new ArrayList<>();
+            Contact participant = null;
+            String participantId;
+
+            for (String key : root.allKeys()) {
+                NSObject value = root.objectForKey(key);
+                if (value instanceof NSArray) {
+                    primaryArray = (NSArray) value;
+                    break;
+                }
+            }
+
+            if (primaryArray == null)
+                return;
+
+            for (NSObject element : primaryArray.getArray()) {
+                if (element instanceof NSDictionary) {
+                    if (((NSDictionary) element).containsKey("pk")) {
+                        indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("pk")).getBytes());
+                        participantId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                        participant = getFromAllContacts(participantId);
+                        if (participant == null) {
+                            participant = new Contact(participantId);
+                        }
+                        participants.add(participant);
+                    }
+                }
+            }
+
+            user = getUser(userId);
+            if (user == null)
+                user = new Contact(userId);
+
+            from = getFromAllContacts(fromId);
+            if (from == null)
+                from = new Contact(fromId);
+
+            participants.add(user);
+            fromMe = userId.equals(fromId);
+            chat = new Chat(user, chatId, messageId, participants, data, timestamp, from, fromMe, messageType);
+            chats.add(chat);
+        } else {
+            from = getFromAllContacts(fromId);
+            if (from == null)
+                from = new Contact(fromId);
+
+            fromMe = fromId.equals(chat.getUser().getId());
+            Message message = new Message(chat, messageId, data, timestamp, from, fromMe, messageType);
+            chat.addMessage(message);
+        }
     }
+
 
     private void parseInstagramDBAndroid(InputStream stream, ContentHandler handler, Metadata metadata,
                                          ParseContext context) throws TikaException {
 
-        logger.info("--- PARSE DB ANDROID ---");
         IItemSearcher searcher = context.get(IItemSearcher.class);
         EmbeddedDocumentExtractor extractor = context.get(EmbeddedDocumentExtractor.class,
             new ParsingEmbeddedDocumentExtractor(context));
@@ -523,7 +717,8 @@ public class InstagramParser extends SQLite3DBParser {
         }
     }
 
-    private void addMessageAndroid(String messageId, String id, String userId, long timeStamp, String texto, String messageInfoJson, String messageType) throws JsonProcessingException {
+    private void addMessageAndroid(String messageId, String id, String userId, long timeStamp, String texto, String
+        messageInfoJson, String messageType) throws JsonProcessingException {
         Chat chat = null;
         Contact from = null;
         Contact recipient = null;
