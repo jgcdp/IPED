@@ -206,6 +206,11 @@ public class Util {
         }
     }
 
+    public static long toTimeStamp(double appleDate) {
+        long appleEpochMillis = 978307200000L; // 2001-01-01 00:00:00 UTC
+        return appleEpochMillis + (long)(appleDate * 1000);
+    }
+
     static class ContainerVolatile {
         volatile boolean progress = false;
     }

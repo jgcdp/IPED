@@ -1,6 +1,7 @@
 package iped.parsers.instagram;
 
 import java.util.List;
+import java.util.Objects;
 
 import dpf.ap.gpinf.interfacetelegram.PhotoData;
 
@@ -28,6 +29,18 @@ public class Contact {
 
     public Contact() {
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Contact contact = (Contact) o;
+        return Objects.equals(id, contact.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     public String getId() {

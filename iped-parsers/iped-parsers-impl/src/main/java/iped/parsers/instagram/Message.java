@@ -17,7 +17,7 @@ public class Message {
         this.chat = chat;
         this.id = id;
         this.data = (data == null || data.isEmpty()) ? messageType : data;
-        this.timeStamp = new Date(timeStamp / 1000);
+        this.timeStamp = new Date(timeStamp);
         this.from = from;
         this.fromMe = fromMe;
         this.messageType = messageType;

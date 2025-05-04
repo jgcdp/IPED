@@ -501,13 +501,16 @@ public class InstagramParser extends SQLite3DBParser {
                     indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("NSString*senderPk")).getBytes());
                     fromId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
                 } else if (((NSDictionary) element).containsKey("NS.time")) {
-//                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("NS.time")).getBytes());
-//                    fromId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
-                } else if (((NSDictionary) element).containsKey("NSString*string")) {
+                    double appleDate = ((NSNumber) ((NSDictionary) element).objectForKey("NS.time")).doubleValue();
+                    timestamp = Util.toTimeStamp(appleDate);
+                } else if (((NSDictionary) element).containsKey("NSString*string") && ((NSDictionary) element).containsKey("codedSubtype")) {
                     indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("NSString*string")).getBytes());
                     data = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
-                } else if (((NSDictionary) element).containsKey("codedSubtype")) {
+
                     indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("codedSubtype")).getBytes());
+                    messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                } else if (((NSDictionary) element).containsKey("CODED_SUBTYPE")) {
+                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("CODED_SUBTYPE")).getBytes());
                     messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
                 }
             }
@@ -524,7 +527,7 @@ public class InstagramParser extends SQLite3DBParser {
             primaryArray = null;
             List<Contact> participants = new ArrayList<>();
             Contact participant = null;
-            String participantId;
+            String participantId, participantFullName, participantUserName;
 
             for (String key : root.allKeys()) {
                 NSObject value = root.objectForKey(key);
@@ -539,12 +542,20 @@ public class InstagramParser extends SQLite3DBParser {
 
             for (NSObject element : primaryArray.getArray()) {
                 if (element instanceof NSDictionary) {
-                    if (((NSDictionary) element).containsKey("pk")) {
+                    if (((NSDictionary) element).containsKey("pk") && ((NSDictionary) element).containsKey("fullName") && ((NSDictionary) element).containsKey("userName")) {
                         indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("pk")).getBytes());
                         participantId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
-                        participant = getFromAllContacts(participantId);
+
+                        indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("fullName")).getBytes());
+                        participantFullName = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+
+                        indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("userName")).getBytes());
+                        participantUserName = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+
+                        participant = getContact(participantId);
                         if (participant == null) {
-                            participant = new Contact(participantId);
+                            participant = new Contact(participantId, participantUserName, participantFullName);
+                            chatContacts.add(participant);
                         }
                         participants.add(participant);
                     }
@@ -559,7 +570,9 @@ public class InstagramParser extends SQLite3DBParser {
             if (from == null)
                 from = new Contact(fromId);
 
-            participants.add(user);
+            if(!participants.contains(user))
+                participants.add(user);
+
             fromMe = userId.equals(fromId);
             chat = new Chat(user, chatId, messageId, participants, data, timestamp, from, fromMe, messageType);
             chats.add(chat);
@@ -593,6 +606,7 @@ public class InstagramParser extends SQLite3DBParser {
                 String text = rs.getString("text");
                 String messageInfoJson = rs.getString("message");
                 String messageType = rs.getString("message_type");
+                timestamp = timestamp/1000;
                 addMessageAndroid(messageId, chatId, userId, timestamp, text, messageInfoJson, messageType);
             }
 
