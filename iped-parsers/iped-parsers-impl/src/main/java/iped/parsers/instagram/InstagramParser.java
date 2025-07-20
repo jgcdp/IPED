@@ -325,7 +325,7 @@ public class InstagramParser extends SQLite3DBParser {
             Element element = (Element) nodes.item(i);
             String nameAttr = element.getAttribute("name");
 
-            // Filter only user entries (e.g., name="user:123456789")
+            // Filter only user entries
             if (nameAttr.startsWith("user:")) {
                 String rawJson = element.getTextContent();
 
@@ -432,7 +432,6 @@ public class InstagramParser extends SQLite3DBParser {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
 
         return usersDecoded;
     }
