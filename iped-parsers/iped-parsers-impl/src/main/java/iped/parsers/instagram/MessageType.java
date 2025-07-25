@@ -2,8 +2,12 @@ package iped.parsers.instagram;
 
 public enum MessageType {
     MEDIA("media"),
+    IMAGE("image"),
+    VIDEO("video"),
     TEXT("text"),
-    VOICE_MEDIA("voice_media");
+    AUDIO("voice"),
+    CLIP("clip"),
+    LINK("link");
 
     private final String value;
 

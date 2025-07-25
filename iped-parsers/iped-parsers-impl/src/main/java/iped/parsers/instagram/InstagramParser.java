@@ -495,24 +495,37 @@ public class InstagramParser extends SQLite3DBParser {
             return;
 
         for (NSObject element : primaryArray.getArray()) {
-            if (element instanceof NSDictionary) {
-                if (((NSDictionary) element).containsKey("NSString*senderPk")) {
-                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("NSString*senderPk")).getBytes());
-                    fromId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
-                } else if (((NSDictionary) element).containsKey("NS.time")) {
-                    double appleDate = ((NSNumber) ((NSDictionary) element).objectForKey("NS.time")).doubleValue();
-                    timestamp = Util.toTimeStamp(appleDate);
-                } else if (((NSDictionary) element).containsKey("NSString*string") && ((NSDictionary) element).containsKey("codedSubtype")) {
-                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("NSString*string")).getBytes());
-                    data = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+            if (element instanceof NSDictionary && ((NSDictionary) element).containsKey("IGDirectPublishedMessageMetadata*metadata")) {
+                indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("IGDirectPublishedMessageMetadata*metadata")).getBytes());
+                NSDictionary messageMetadata = ((NSDictionary) primaryArray.getArray()[indexObjectValue]);
 
-                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("codedSubtype")).getBytes());
-                    messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
-                } else if (((NSDictionary) element).containsKey("CODED_SUBTYPE")) {
-                    indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("CODED_SUBTYPE")).getBytes());
+                if (messageMetadata.containsKey("NSString*senderPk")) {
+                    indexObjectValue = Util.fromBytesToInt(((UID) messageMetadata.objectForKey("NSString*senderPk")).getBytes());
+                    fromId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                }
+
+                if (messageMetadata.containsKey("NSDate*serverTimestamp")) {
+                    indexObjectValue = Util.fromBytesToInt(((UID) messageMetadata.objectForKey("NSDate*serverTimestamp")).getBytes());
+                    double appleDate = ((NSNumber) ((NSDictionary) primaryArray.getArray()[indexObjectValue]).objectForKey("NS.time")).doubleValue();
+                    timestamp = Util.toTimeStamp(appleDate);
+                }
+
+                indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("IGDirectPublishedMessageContent*content")).getBytes());
+                NSDictionary messageContent = ((NSDictionary) primaryArray.getArray()[indexObjectValue]);
+
+                if (messageContent.containsKey("NSString*string")) {
+                    indexObjectValue = Util.fromBytesToInt(((UID) messageContent.objectForKey("NSString*string")).getBytes());
+                    data = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                    messageType = MessageType.TEXT.getValue();
+                } else {
+                    indexObjectValue = Util.fromBytesToInt(((UID) messageContent.objectForKey("codedSubtype")).getBytes());
                     messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
                 }
+            } else if (messageType != null && messageType.toLowerCase().contains("media") && element instanceof NSDictionary && ((NSDictionary) element).containsKey("MEDIA_TYPE")) {
+                indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("MEDIA_TYPE")).getBytes());
+                messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
             }
+
         }
 
         // needs to get another plist from another sqlite table.
@@ -569,7 +582,7 @@ public class InstagramParser extends SQLite3DBParser {
             if (from == null)
                 from = new Contact(fromId);
 
-            if(!participants.contains(user))
+            if (!participants.contains(user))
                 participants.add(user);
 
             fromMe = userId.equals(fromId);
@@ -605,7 +618,7 @@ public class InstagramParser extends SQLite3DBParser {
                 String text = rs.getString("text");
                 String messageInfoJson = rs.getString("message");
                 String messageType = rs.getString("message_type");
-                timestamp = timestamp/1000;
+                timestamp = timestamp / 1000;
                 addMessageAndroid(messageId, chatId, userId, timestamp, text, messageInfoJson, messageType);
             }
 
@@ -714,7 +727,7 @@ public class InstagramParser extends SQLite3DBParser {
                 }
             }
 
-            meta.set(ExtraProperties.MESSAGE_BODY, m.getData());
+            meta.set(ExtraProperties.MESSAGE_BODY, m.getText());
 
             meta.set("mediaName", m.getMessageType());
 
@@ -741,6 +754,17 @@ public class InstagramParser extends SQLite3DBParser {
         ObjectMapper objectMapper = new ObjectMapper();
 
         JsonNode rootNode = objectMapper.readTree(messageInfoJson);
+
+        if (messageType.equals(MessageType.MEDIA.getValue())) {
+            JsonNode media = rootNode.path("media");
+            String mediaType = media.path("media_type").asText();
+            if (mediaType.equals("1")) {
+                messageType = MessageType.IMAGE.getValue();
+            } else if (mediaType.equals("2")) {
+                messageType = MessageType.VIDEO.getValue();
+            }
+        }
+
         String fromId = rootNode.path("user_id").asText();
         from = getFromAllContacts(fromId);
 
@@ -768,6 +792,7 @@ public class InstagramParser extends SQLite3DBParser {
                 user = new Contact(userId);
             }
             participants.add(user);
+
             JsonNode recipientArray = rootNode.path("thread_key").path("recipient_ids");
 
             for (JsonNode idNode : recipientArray) {

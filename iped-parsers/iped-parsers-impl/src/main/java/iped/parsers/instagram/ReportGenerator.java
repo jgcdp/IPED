@@ -5,7 +5,10 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
+import iped.data.IItemReader;
+import iped.parsers.telegram.TagHtml;
 import iped.parsers.telegram.Util;
 import iped.parsers.util.Messages;
 import iped.search.IItemSearcher;
@@ -139,34 +142,34 @@ public class ReportGenerator {
 		return EmojiUtil.replaceByImages(bout.toByteArray());
 	}
 
-//	private TagHtml getThumbTag(Message m, String classnotfound) {
-//		byte thumb[] = m.getThumb();
-//
-//		if (searcher != null && thumb == null && m.getMediaHash() != null && !m.getMediaHash().isBlank()) {
-//			if (!m.getMediaHash().equalsIgnoreCase(emptyMD5)) {
-//				List<IItemReader> result = iped.parsers.util.Util.getItems("md5:" + m.getMediaHash(), searcher);
-//				if (result != null && !result.isEmpty()) {
-//					thumb = result.get(0).getThumb();
-//				}
-//			}
-//		}
-//
-//		TagHtml img;
-//		if (thumb != null) {
-//			img = new TagHtml("img");
-//			img.setAtribute("class", "thumb");
-//			img.setAtribute("src", "data:image/jpg;base64," + iped.parsers.whatsapp.Util.encodeBase64(thumb));
-//		} else {
-//			img = new TagHtml("div");
-//			img.setAtribute("class", classnotfound);
-//		}
-//		return img;
-//	}
-//
-//	private void printVideo(PrintWriter out, Message message) {
-//
-//		if (message.getMediaHash() != null) {
-//
+	private TagHtml getThumbTag(Message m, String classnotfound) {
+		byte thumb[] = null;//m.getThumb();
+
+		if (searcher != null && thumb == null && m.getMediaHash() != null && !m.getMediaHash().isBlank()) {
+			if (!m.getMediaHash().equalsIgnoreCase(emptyMD5)) {
+				List<IItemReader> result = iped.parsers.util.Util.getItems("md5:" + m.getMediaHash(), searcher);
+				if (result != null && !result.isEmpty()) {
+					thumb = result.get(0).getThumb();
+				}
+			}
+		}
+
+		TagHtml img;
+		if (thumb != null) {
+			img = new TagHtml("img");
+			img.setAtribute("class", "thumb");
+			img.setAtribute("src", "data:image/jpg;base64," + iped.parsers.whatsapp.Util.encodeBase64(thumb));
+		} else {
+			img = new TagHtml("div");
+			img.setAtribute("class", classnotfound);
+		}
+		return img;
+	}
+
+	private void printVideo(PrintWriter out, Message message) {
+
+		if (message.getMediaHash() != null) {
+
 //			printCheckbox(out, message.getMediaHash());
 //
 //			TagHtml div = new TagHtml("div");
@@ -195,20 +198,20 @@ public class ReportGenerator {
 //
 //			out.println(div.toString());
 //			out.println("<br/>");
-//
-//		} else {
-//			out.println(getThumbTag(message, "videoImg").toString()); //$NON-NLS-1$
-//		}
-//
-//	}
-//
-//	private void printAudio(PrintWriter out, Message message) {
-//
-//		TagHtml img = new TagHtml("div");
-//		img.setAtribute("title", "Audio");
-//
-//		if (message.getMediaHash() != null) {
-//
+
+		} else {
+			out.println(getThumbTag(message, "videoImg").toString()); //$NON-NLS-1$
+		}
+
+	}
+
+	private void printAudio(PrintWriter out, Message message) {
+
+		TagHtml img = new TagHtml("div");
+		img.setAtribute("title", "Audio");
+
+		if (message.getMediaHash() != null) {
+
 //			printCheckbox(out, message.getMediaHash());
 //
 //			TagHtml div = new TagHtml("div");
@@ -235,33 +238,34 @@ public class ReportGenerator {
 //			link.getInner().add(img);
 //			div.getInner().add(link);
 //			out.println(div.toString());
-//
-//		} else {
-//			img.setAtribute("class", "audioImg");
-//			out.println(img.toString());
-//		}
-//
-//		out.println("<br/>");
-//
-//	}
-//
-//	private void printImage(PrintWriter out, Message message) {
-//		printImage(out, message, false);
-//	}
-//
-//	private void printImage(PrintWriter out, Message message, boolean isLink) {
-//		if (isLink) {
-//			out.print("<b>" + Messages.getString("InstagramReport.Link") + "</b><br/>");
-//			if (message.getUrl() != null) {
-//				out.print(Messages.getString("InstagramReport.LinkURL") + ": " + format(message.getUrl()) + "<br/>");
-//			}
-//			if (message.getLinkTitle() != null) {
-//				out.print(Messages.getString("InstagramReport.LinkTitle") + ": " + format(message.getLinkTitle())
-//						+ "<br/>");
-//			}
-//		}
-//		if (message.getMediaHash() != null) {
-//
+
+		} else {
+			img.setAtribute("class", "audioImg");
+			out.println(img.toString());
+		}
+
+		out.println("<br/>");
+
+	}
+
+	private void printImage(PrintWriter out, Message message) {
+		printImage(out, message, false);
+	}
+
+	private void printImage(PrintWriter out, Message message, boolean isLink) {
+		if (isLink) {
+			out.print("<b>" + Messages.getString("InstagramReport.Link") + "</b><br/>");
+			if (message.getLink() != null) {
+				out.print(Messages.getString("InstagramReport.LinkURL") + ": " + format(message.getLink()) + "<br/>");
+			}
+			if (message.getText() != null) {
+				out.print(Messages.getString("InstagramReport.LinkTitle") + ": " + format(message.getText())
+						+ "<br/>");
+			}
+		}
+
+		if (message.getMediaHash() != null) {
+
 //			printCheckbox(out, message.getMediaHash());
 //
 //			TagHtml div = new TagHtml("div");
@@ -283,17 +287,17 @@ public class ReportGenerator {
 //			div.getInner().add(link);
 //
 //			out.println(div.toString());
-//
-//		} else if (!isLink) {
-//			out.println(getThumbTag(message, "imageImg").toString()); //$NON-NLS-1$
-//		}
-//		out.println("<br/>");
-//
-//	}
-//
-//	private void printAttachment(PrintWriter out, Message message) {
-//		if (message.getMediaHash() != null) {
-//
+
+		} else if (!isLink) {
+			out.println(getThumbTag(message, "imageImg").toString()); //$NON-NLS-1$
+		}
+		out.println("<br/>");
+
+	}
+
+	private void printAttachment(PrintWriter out, Message message) {
+		if (message.getMediaHash() != null) {
+
 //			printCheckbox(out, message.getMediaHash());
 //
 //			TagHtml div = new TagHtml("div");
@@ -314,13 +318,13 @@ public class ReportGenerator {
 //			div.getInner().add(link);
 //
 //			out.println(div.toString());
-//
-//		} else {
-//			out.println(getThumbTag(message, "attachImg").toString()); //$NON-NLS-1$
-//		}
-//		out.println("<br/>");
-//
-//	}
+
+		} else {
+			out.println(getThumbTag(message, "attachImg").toString()); //$NON-NLS-1$
+		}
+		out.println("<br/>");
+
+	}
 
 //	private void printGeoLocation(PrintWriter out, Message message) {
 //		// toDo better handling Geo locations
@@ -328,14 +332,14 @@ public class ReportGenerator {
 //		out.println("Longitude: " + message.getLongitude());
 //	}
 
-//	private void printCheckbox(PrintWriter out, String hash) {
-//		out.println("<input class=\"check\" type=\"checkbox\" onclick=\"app.check('hash:" + hash
-//				+ "', this.checked)\" name=\"" + hash + "\" />");
-//	}
-//
-//	private void printLink(PrintWriter out, Message message) {
-//		printImage(out, message, true);
-//	}
+	private void printCheckbox(PrintWriter out, String hash) {
+		out.println("<input class=\"check\" type=\"checkbox\" onclick=\"app.check('hash:" + hash
+				+ "', this.checked)\" name=\"" + hash + "\" />");
+	}
+
+	private void printLink(PrintWriter out, Message message) {
+		printImage(out, message, true);
+	}
 
 	private void printMessage(PrintWriter out, Message message) {
 
@@ -352,26 +356,33 @@ public class ReportGenerator {
                 + format(contact.toString()) + "</span><br/>"); //$NON-NLS-1$
         }
 
-//		if (message.getMessageType() != null && !message.getMessageType().isEmpty()) {
-//			out.print(format(message.getMessageType()) + "<br>");
-//		}
-//		if (message.getMediaMime() != null) {
-//			if (message.getMediaMime().equals("geo")) {
-//				printGeoLocation(out, message);
-//			} else if (message.getMediaMime().toLowerCase().startsWith("video")) {
-//				printVideo(out, message);
-//			} else if (message.getMediaMime().toLowerCase().startsWith("image")) {
-//				printImage(out, message);
+		if (message.getMessageType() != null && !message.getMessageType().isEmpty()) {
+
+//			if (message.getMessageType().equals("geo")) {
+//			//	printGeoLocation(out, message);
+//			} else
 //
-//			} else if (message.getMediaMime().toLowerCase().startsWith("audio")) {
-//				printAudio(out, message);
-//			} else if (message.getMediaMime().toLowerCase().startsWith("link")) {
-//				printLink(out, message);
-//			} else {
-//				printAttachment(out, message);
+            if (message.getMessageType().contains(MessageType.VIDEO.getValue()) || message.getMessageType().toLowerCase().equals(MessageType.CLIP.getValue())) {
+                out.print(format("Message Type: " + message.getMessageType()) + "<br>");
+                printVideo(out, message);
+			} else if (message.getMessageType().contains(MessageType.IMAGE.getValue())) {
+                out.print(format("Message Type: " + message.getMessageType()) + "<br>");
+                printImage(out, message);
+			} else if (message.getMessageType().contains(MessageType.AUDIO.getValue())) {
+                out.print(format("Message Type: " + message.getMessageType()) + "<br>");
+                printAudio(out, message);
+			} else if (message.getMessageType().contains(MessageType.LINK.getValue())) {
+                out.print(format("Message Type: " + message.getMessageType()) + "<br>");
+                printLink(out, message);
+            } else if (message.getMessageType().contains(MessageType.TEXT.getValue())) {
+                out.print(format(message.getText()));
+            }
+//            else {
+//                printAttachment(out, message);
 //			}
-//
-//		}
+
+
+		}
 
 //		PoolData poolData = message.getPoolData();
 //		if (poolData != null) {
@@ -382,10 +393,6 @@ public class ReportGenerator {
 //			}
 //			out.println("</ul>");
 //		}
-
-		if (message.getData() != null) {
-			out.print(format(message.getData()));
-		}
 
 		out.println("<br/>");
 

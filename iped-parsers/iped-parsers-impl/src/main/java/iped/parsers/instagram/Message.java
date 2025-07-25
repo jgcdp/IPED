@@ -5,22 +5,23 @@ import java.util.Date;
 
 public class Message {
     private String id;
-    private String data;
-    private String messageType;
+    private String text = null;
+    private String link = null;
+    private String mediaHash = null;
+    private String messageType = null;
     private Date timeStamp = null;
     boolean fromMe = true;
-    private String type = null;
     private Contact from = null;
     Chat chat;
 
-    public Message(Chat chat, String id, String data, long timeStamp, Contact from, boolean fromMe, String messageType) {
+    public Message(Chat chat, String id, String text, long timeStamp, Contact from, boolean fromMe, String messageType) {
         this.chat = chat;
         this.id = id;
-        this.data = (data == null || data.isEmpty()) ? messageType : data;
+        this.text = text;
         this.timeStamp = new Date(timeStamp);
         this.from = from;
         this.fromMe = fromMe;
-        this.messageType = messageType;
+        this.messageType = messageType.toLowerCase();
     }
 
     public String getMessageType() {
@@ -39,12 +40,12 @@ public class Message {
         return timeStamp;
     }
 
-    public void setData(String data) {
-        this.data = data;
+    public void setText(String text) {
+        this.text = text;
     }
 
-    public String getData() {
-        return data;
+    public String getText() {
+        return text;
     }
 
     public boolean isFromMe() {
@@ -62,5 +63,17 @@ public class Message {
             }
         }
         return new Contact("");
+    }
+
+    public String getMediaHash() {
+        return mediaHash;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setLink(String link) {
+        this.link = link;
     }
 }
