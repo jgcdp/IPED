@@ -143,7 +143,7 @@ public class ReportGenerator {
 	}
 
 	private TagHtml getThumbTag(Message m, String classnotfound) {
-		byte thumb[] = null;//m.getThumb();
+		byte thumb[] = m.getThumb();
 
 		if (searcher != null && thumb == null && m.getMediaHash() != null && !m.getMediaHash().isBlank()) {
 			if (!m.getMediaHash().equalsIgnoreCase(emptyMD5)) {
@@ -254,39 +254,34 @@ public class ReportGenerator {
 
 	private void printImage(PrintWriter out, Message message, boolean isLink) {
 		if (isLink) {
-			out.print("<b>" + Messages.getString("InstagramReport.Link") + "</b><br/>");
+			out.print("<b>" + Messages.getString("TelegramReport.Link") + "</b><br/>");
 			if (message.getLink() != null) {
-				out.print(Messages.getString("InstagramReport.LinkURL") + ": " + format(message.getLink()) + "<br/>");
+				out.print(Messages.getString("TelegramReport.LinkURL") + ": " + format(message.getLink()) + "<br/>");
 			}
 			if (message.getText() != null) {
-				out.print(Messages.getString("InstagramReport.LinkTitle") + ": " + format(message.getText())
+				out.print(Messages.getString("TelegramReport.LinkTitle") + ": " + format(message.getText())
 						+ "<br/>");
 			}
 		}
 
 		if (message.getMediaHash() != null) {
 
-//			printCheckbox(out, message.getMediaHash());
-//
-//			TagHtml div = new TagHtml("div");
-//			if (message.getMediaComment() != null) {
-//				div.setAtribute("class", "tooltip");
-//				div.getInner().add(creatSpanTag(message.getMediaComment()));
-//			}
-//
-//			TagHtml link = new TagHtml("a");
-//			link.setAtribute("onclick", "app.open('hash:" + message.getMediaHash() + "')");
-//			String ref = iped.parsers.util.Util.getReportHref(message.getMediaItem());
-//			link.setAtribute("href", format(ref));
-//
-//			TagHtml img = getThumbTag(message, "imageImg");
-//
-//			String title = isLink ? "Link" : "Image";
-//			img.setAtribute("title", title);
-//			link.getInner().add(img);
-//			div.getInner().add(link);
-//
-//			out.println(div.toString());
+			printCheckbox(out, message.getMediaHash());
+
+			TagHtml div = new TagHtml("div");
+			TagHtml link = new TagHtml("a");
+			link.setAtribute("onclick", "app.open('hash:" + message.getMediaHash() + "')");
+			String ref = iped.parsers.util.Util.getReportHref(message.getMediaItem());
+			link.setAtribute("href", format(ref));
+
+			TagHtml img = getThumbTag(message, "imageImg");
+
+			String title = isLink ? "Link" : "Image";
+			img.setAtribute("title", title);
+			link.getInner().add(img);
+			div.getInner().add(link);
+
+			out.println(div.toString());
 
 		} else if (!isLink) {
 			out.println(getThumbTag(message, "imageImg").toString()); //$NON-NLS-1$
@@ -368,7 +363,7 @@ public class ReportGenerator {
 			} else if (message.getMessageType().contains(MessageType.IMAGE.getValue())) {
                 out.print(format("Message Type: " + message.getMessageType()) + "<br>");
                 printImage(out, message);
-			} else if (message.getMessageType().contains(MessageType.AUDIO.getValue())) {
+			} else if (message.getMessageType().contains(MessageType.AUDIO.getValue()) || message.getMessageType().contains("voice")) {
                 out.print(format("Message Type: " + message.getMessageType()) + "<br>");
                 printAudio(out, message);
 			} else if (message.getMessageType().contains(MessageType.LINK.getValue())) {
@@ -376,10 +371,15 @@ public class ReportGenerator {
                 printLink(out, message);
             } else if (message.getMessageType().contains(MessageType.TEXT.getValue())) {
                 out.print(format(message.getText()));
-            }
-//            else {
-//                printAttachment(out, message);
-//			}
+            } else if (message.getMessageType().contains(MessageType.PLACEHOLDER.getValue())) {
+                out.print(format("Message Type: " + message.getMessageType()) + "<br>");
+                out.print(format(message.getText()));
+            } else {
+                out.print(format("Message Type: " + message.getMessageType()) + "<br>");
+                if(message.getText() != null)
+                    out.print(format(message.getText()));
+                //printAttachment(out, message);
+			}
 
 
 		}

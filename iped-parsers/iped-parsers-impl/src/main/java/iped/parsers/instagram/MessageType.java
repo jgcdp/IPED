@@ -5,7 +5,8 @@ public enum MessageType {
     IMAGE("image"),
     VIDEO("video"),
     TEXT("text"),
-    AUDIO("voice"),
+    PLACEHOLDER("placeholder"),
+    AUDIO("audio"),
     CLIP("clip"),
     LINK("link");
 

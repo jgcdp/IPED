@@ -1,20 +1,25 @@
 package iped.parsers.instagram;
 
 
+import iped.data.IItemReader;
+
 import java.util.Date;
 
 public class Message {
     private String id;
     private String text = null;
     private String link = null;
+    private String mediaCacheName = null;
     private String mediaHash = null;
+    private IItemReader mediaItem = null;
+    private byte[] thumb = null;
     private String messageType = null;
     private Date timeStamp = null;
     boolean fromMe = true;
     private Contact from = null;
     Chat chat;
 
-    public Message(Chat chat, String id, String text, long timeStamp, Contact from, boolean fromMe, String messageType) {
+    public Message(Chat chat, String id, String text, long timeStamp, Contact from, boolean fromMe, String messageType, String link) {
         this.chat = chat;
         this.id = id;
         this.text = text;
@@ -22,6 +27,7 @@ public class Message {
         this.from = from;
         this.fromMe = fromMe;
         this.messageType = messageType.toLowerCase();
+        this.link = link;
     }
 
     public String getMessageType() {
@@ -75,5 +81,41 @@ public class Message {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public void setMessageType(String messageType) {
+        this.messageType = messageType;
+    }
+
+    public void setChat(Chat chat) {
+        this.chat = chat;
+    }
+
+    public String getMediaCacheName() {
+        return mediaCacheName;
+    }
+
+    public void setMediaCacheName(String mediaCacheName) {
+        this.mediaCacheName = mediaCacheName;
+    }
+
+    public IItemReader getMediaItem() {
+        return mediaItem;
+    }
+
+    public void setMediaItem(IItemReader mediaItem) {
+        this.mediaItem = mediaItem;
+    }
+
+    public void setMediaHash(String hash) {
+        this.mediaHash = hash;
+    }
+
+    public byte[] getThumb() {
+        return thumb;
+    }
+
+    public void setThumb(byte[] thumb) {
+        this.thumb = thumb;
     }
 }

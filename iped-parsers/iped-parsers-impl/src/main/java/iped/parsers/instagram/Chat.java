@@ -12,13 +12,11 @@ public class Chat {
     private String id;
     private Contact user;
 
-    public Chat(Contact user, String id, String messageId, List<Contact> participants, String data, long timeStamp, Contact from, boolean fromMe, String messageType) {
+    public Chat(Contact user, String id, List<Contact> participants) {
         this.user = user;
         this.participants = participants;
         isGroup = participants.size() > 2;
         this.id = id;
-        Message message = new Message(this, messageId, data, timeStamp, from, fromMe, messageType);
-        this.messages.add(message);
     }
 
     public boolean isDeleted() {

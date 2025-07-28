@@ -469,8 +469,9 @@ public class InstagramParser extends SQLite3DBParser {
         NSArray primaryArray = null;
         int indexObjectValue;
         String fromId = null;
-        String data = null;
+        String text = null;
         String messageType = null;
+        String link = null;
         long timestamp = 0;
         Chat chat = null;
         boolean fromMe = false;
@@ -494,8 +495,9 @@ public class InstagramParser extends SQLite3DBParser {
         if (primaryArray == null)
             return;
 
+        // build message
         for (NSObject element : primaryArray.getArray()) {
-            if (element instanceof NSDictionary && ((NSDictionary) element).containsKey("IGDirectPublishedMessageMetadata*metadata")) {
+            if (messageType == null && element instanceof NSDictionary && ((NSDictionary) element).containsKey("IGDirectPublishedMessageMetadata*metadata")) {
                 indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("IGDirectPublishedMessageMetadata*metadata")).getBytes());
                 NSDictionary messageMetadata = ((NSDictionary) primaryArray.getArray()[indexObjectValue]);
 
@@ -515,15 +517,34 @@ public class InstagramParser extends SQLite3DBParser {
 
                 if (messageContent.containsKey("NSString*string")) {
                     indexObjectValue = Util.fromBytesToInt(((UID) messageContent.objectForKey("NSString*string")).getBytes());
-                    data = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                    text = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
                     messageType = MessageType.TEXT.getValue();
+                    break;
                 } else {
                     indexObjectValue = Util.fromBytesToInt(((UID) messageContent.objectForKey("codedSubtype")).getBytes());
-                    messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                    messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent().toLowerCase();
                 }
             } else if (messageType != null && messageType.toLowerCase().contains("media") && element instanceof NSDictionary && ((NSDictionary) element).containsKey("MEDIA_TYPE")) {
                 indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("MEDIA_TYPE")).getBytes());
-                messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                messageType = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent().toLowerCase();
+                break;
+            } else if (element instanceof NSDictionary && ((NSDictionary) element).containsKey("targetURL")) {
+                indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("targetURL")).getBytes());
+                if (indexObjectValue != 0) {
+                    NSDictionary targetURLDicionary = ((NSDictionary) primaryArray.getArray()[indexObjectValue]);
+                    indexObjectValue = Util.fromBytesToInt(((UID) targetURLDicionary.objectForKey("NS.relative")).getBytes());
+                    link = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                }
+
+                if (link != null)
+                    messageType = MessageType.LINK.getValue();
+            } else if (text == null && element instanceof NSDictionary && ((NSDictionary) element).containsKey("titleText")) {
+                indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("titleText")).getBytes());
+                if (indexObjectValue != 0)
+                    text = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+            } else if (text == null && element instanceof NSDictionary && ((NSDictionary) element).containsKey("text")) {
+                indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("text")).getBytes());
+                text = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
             }
 
         }
@@ -586,7 +607,9 @@ public class InstagramParser extends SQLite3DBParser {
                 participants.add(user);
 
             fromMe = userId.equals(fromId);
-            chat = new Chat(user, chatId, messageId, participants, data, timestamp, from, fromMe, messageType);
+            chat = new Chat(user, chatId, participants);
+            Message message = new Message(chat, messageId, text, timestamp, from, fromMe, messageType, link);
+            chat.addMessage(message);
             chats.add(chat);
         } else {
             from = getFromAllContacts(fromId);
@@ -594,7 +617,7 @@ public class InstagramParser extends SQLite3DBParser {
                 from = new Contact(fromId);
 
             fromMe = fromId.equals(chat.getUser().getId());
-            Message message = new Message(chat, messageId, data, timestamp, from, fromMe, messageType);
+            Message message = new Message(chat, messageId, text, timestamp, from, fromMe, messageType, link);
             chat.addMessage(message);
         }
     }
@@ -731,9 +754,9 @@ public class InstagramParser extends SQLite3DBParser {
 
             meta.set("mediaName", m.getMessageType());
 
-//            if (m.getMediaMime() != null) {
-//                meta.add(ExtraProperties.MESSAGE_BODY, ATTACHMENT_MESSAGE + m.getMediaMime());
-//            }
+            if (m.getMessageType().contains(MessageType.IMAGE.getValue())) {
+                meta.add(ExtraProperties.MESSAGE_BODY, ATTACHMENT_MESSAGE + m.getMessageType());
+            }
 //            if (m.getMediaSize() != 0) {
 //                meta.set("mediaSize", Long.toString(m.getMediaSize()));
 //            }
@@ -743,28 +766,16 @@ public class InstagramParser extends SQLite3DBParser {
         }
     }
 
-    private void addMessageAndroid(String messageId, String id, String userId, long timeStamp, String texto, String
+    private void addMessageAndroid(String messageId, String id, String userId, long timeStamp, String text, String
         messageInfoJson, String messageType) throws JsonProcessingException {
         Chat chat = null;
         Contact from = null;
         Contact recipient = null;
         boolean fromMe = false;
+        String link = null;
         List<Contact> participants = new ArrayList<>();
-
         ObjectMapper objectMapper = new ObjectMapper();
-
         JsonNode rootNode = objectMapper.readTree(messageInfoJson);
-
-        if (messageType.equals(MessageType.MEDIA.getValue())) {
-            JsonNode media = rootNode.path("media");
-            String mediaType = media.path("media_type").asText();
-            if (mediaType.equals("1")) {
-                messageType = MessageType.IMAGE.getValue();
-            } else if (mediaType.equals("2")) {
-                messageType = MessageType.VIDEO.getValue();
-            }
-        }
-
         String fromId = rootNode.path("user_id").asText();
         from = getFromAllContacts(fromId);
 
@@ -786,6 +797,11 @@ public class InstagramParser extends SQLite3DBParser {
             }
         }
 
+        Message message = new Message(chat, messageId, text, timeStamp, from, fromMe, messageType, link);
+        if (!messageType.equals(MessageType.TEXT.getValue())) {
+            getMoreInfoFromMessage(rootNode, message);
+        }
+
         if (chat == null) {
             Contact user = getUser(userId);
             if (user == null) {
@@ -805,11 +821,54 @@ public class InstagramParser extends SQLite3DBParser {
                 participants.add(recipient);
             }
 
-            chat = new Chat(user, id, messageId, participants, texto, timeStamp, from, fromMe, messageType);
+            chat = new Chat(user, id, participants);
+            message.setChat(chat);
+            chat.addMessage(message);
             chats.add(chat);
         } else {
-            Message message = new Message(chat, messageId, texto, timeStamp, from, fromMe, messageType);
             chat.addMessage(message);
+        }
+    }
+
+    private void loadImage(Message message, String query, IItemSearcher searcher) {
+        IItemReader r = Util.getItems(query, searcher).get(0);
+        if (r != null) {
+            message.setMediaHash(r.getHash());
+            message.setMediaItem(r);
+            message.setThumb(r.getThumb());
+//            message.setMediaName(r.getName());
+//            message.setMediaExtension(r.getType());
+//            message.setMediaComment(query);
+        }
+    }
+
+    private void getMoreInfoFromMessage(JsonNode rootNode, Message message) {
+        if (message.getMessageType().equals(MessageType.MEDIA.getValue())) {
+            JsonNode media = rootNode.path("media");
+            String mediaType = media.path("media_type").asText();
+
+            if (mediaType.equals("1")) {
+                message.setMessageType(MessageType.IMAGE.getValue());
+            } else if (mediaType.equals("2")) {
+                message.setMessageType(MessageType.VIDEO.getValue());
+            }
+
+            message.setMediaCacheName(media.path("id").asText());
+        } else if (message.getMessageType().equals("xma_link") || message.getMessageType().equals("xma_media_share")) {
+            JsonNode info = rootNode.path("hscroll_share").get(0);
+            message.setLink(info.path("target_url").asText());
+            message.setText(info.path("title_text").asText());
+            message.setMessageType(MessageType.LINK.getValue());
+        } else if (message.getMessageType().equals("xma_reel_share")) {
+            message.setText(rootNode.path("auxiliary_text").asText());
+            JsonNode info = rootNode.path("hscroll_share").get(0);
+            message.setLink(info.path("target_url").asText());
+            message.setMessageType(MessageType.LINK.getValue());
+        } else if (message.getMessageType().contains("group_poll")) {
+            message.setMessageType("Poll_Creation");
+        } else if (message.getMessageType().contains(MessageType.PLACEHOLDER.getValue())) {
+            JsonNode info = rootNode.path(message.getMessageType());
+            message.setText(info.path("title").asText());
         }
     }
 
