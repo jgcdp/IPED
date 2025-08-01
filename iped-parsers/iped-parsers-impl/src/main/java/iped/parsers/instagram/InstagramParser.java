@@ -882,6 +882,7 @@ private void getMoreInfo(JsonNode rootNode, Message message, IItemSearcher searc
             // try to get media from cache
             String imageCacheName = Base64.getEncoder().encodeToString(mediaId.getBytes(StandardCharsets.UTF_8));
             String query = "name:" + imageCacheName + "*";
+            query = query.replace("=","");
             loadImage(message, query, searcher);
         } else if (mediaType.equals("2")) {
             message.setMessageType(MessageType.VIDEO.getValue());
