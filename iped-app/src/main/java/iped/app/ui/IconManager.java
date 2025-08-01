@@ -293,6 +293,7 @@ public class IconManager {
             mimeIconMap.put("application/outlook-contact", icon);
             mimeIconMap.put("contact/x-skype-account", icon);
             mimeIconMap.put("contact/x-skype-contact", icon);
+            mimeIconMap.put("application/x-instagram-account", icon);
         }
 
         icon = availableIconsMap.get("user-telegram");

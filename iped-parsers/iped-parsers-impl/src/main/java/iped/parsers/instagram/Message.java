@@ -9,7 +9,6 @@ public class Message {
     private String id;
     private String text = null;
     private String link = null;
-    private String mediaCacheName = null;
     private String mediaHash = null;
     private IItemReader mediaItem = null;
     private byte[] thumb = null;
@@ -89,14 +88,6 @@ public class Message {
 
     public void setChat(Chat chat) {
         this.chat = chat;
-    }
-
-    public String getMediaCacheName() {
-        return mediaCacheName;
-    }
-
-    public void setMediaCacheName(String mediaCacheName) {
-        this.mediaCacheName = mediaCacheName;
     }
 
     public IItemReader getMediaItem() {

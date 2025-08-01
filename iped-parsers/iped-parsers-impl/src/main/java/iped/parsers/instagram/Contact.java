@@ -16,6 +16,7 @@ public class Contact {
 	private List<PhotoData> photos = null;
 	private boolean isGroup;
 	private boolean isChannel;
+    private String profilePicSearchName = null;
 
 	public Contact(String id) {
 		this.id = id;
@@ -167,4 +168,12 @@ public class Contact {
 		}
 		return sb.toString();
 	}
+
+    public String getProfilePicSearchName() {
+        return profilePicSearchName;
+    }
+
+    public void setProfilePicSearchName(String profilePicSearchName) {
+        this.profilePicSearchName = profilePicSearchName;
+    }
 }

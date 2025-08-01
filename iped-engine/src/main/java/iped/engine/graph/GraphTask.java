@@ -19,6 +19,7 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import iped.parsers.instagram.InstagramParser;
 import org.apache.tika.metadata.Message;
 import org.apache.tika.metadata.Metadata;
 import org.neo4j.graphdb.Label;
@@ -83,7 +84,7 @@ public class GraphTask extends AbstractTask {
     // TODO externalize to config file
     private static String[] contactMimes = { VCardParser.VCARD_MIME.toString(), OutlookPSTParser.OUTLOOK_CONTACT_MIME,
             SkypeParser.CONTACT_MIME_TYPE, WhatsAppParser.WHATSAPP_CONTACT.toString(),
-            TelegramParser.TELEGRAM_CONTACT.toString(), "application/windows-adress-book",
+            TelegramParser.TELEGRAM_CONTACT.toString(), InstagramParser.INSTAGRAM_CONTACT.toString(), "application/windows-adress-book",
             "application/x-ufed-contact" };
 
     private static final int MAX_PHONE_CACHE_KEY = 50 * 1024;
@@ -245,6 +246,7 @@ public class GraphTask extends AbstractTask {
         if (WhatsAppParser.WHATSAPP_MESSAGE.toString().equals(mediaType)
                 || WhatsAppParser.WHATSAPP_ATTACHMENT.toString().equals(mediaType)
                 || TelegramParser.TELEGRAM_MESSAGE.toString().equals(mediaType)
+                || InstagramParser.INSTAGRAM_MESSAGE.toString().equals(mediaType)
                 || TelegramParser.TELEGRAM_ATTACHMENT.toString().equals(mediaType)
                 || SkypeParser.MESSAGE_MIME_TYPE.toString().equals(mediaType)
                 || SkypeParser.ATTACHMENT_MIME_TYPE.toString().equals(mediaType)
@@ -265,6 +267,7 @@ public class GraphTask extends AbstractTask {
         if (SkypeParser.ACCOUNT_MIME_TYPE.toString().equals(mediaType)
                 || WhatsAppParser.WHATSAPP_ACCOUNT.toString().equals(mediaType)
                 || TelegramParser.TELEGRAM_ACCOUNT.toString().equals(mediaType)
+                || InstagramParser.INSTAGRAM_ACCOUNT.toString().equals(mediaType)
                 || mediaType.equals("application/x-ufed-user") || mediaType.equals("application/x-ufed-useraccount")) {
             return "useraccount";
         }

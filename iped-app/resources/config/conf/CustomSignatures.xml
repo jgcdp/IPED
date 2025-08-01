@@ -338,6 +338,7 @@
     <mime-type type="application/x-instagram-contact-conf">
         <sub-class-of type="application/dita+xml"/>
         <glob pattern="*_usersBootstrapService.xml"/>
+        <glob pattern="*_BanyanCache.xml"/>
     </mime-type>
 
     <mime-type type="application/x-instagram-contact-conf-ios">

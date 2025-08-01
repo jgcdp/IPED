@@ -249,21 +249,6 @@ public class ReportGenerator {
 	}
 
 	private void printImage(PrintWriter out, Message message) {
-		printImage(out, message, false);
-	}
-
-	private void printImage(PrintWriter out, Message message, boolean isLink) {
-		if (isLink) {
-			out.print("<b>" + Messages.getString("TelegramReport.Link") + "</b><br/>");
-			if (message.getLink() != null) {
-				out.print(Messages.getString("TelegramReport.LinkURL") + ": " + format(message.getLink()) + "<br/>");
-			}
-			if (message.getText() != null) {
-				out.print(Messages.getString("TelegramReport.LinkTitle") + ": " + format(message.getText())
-						+ "<br/>");
-			}
-		}
-
 		if (message.getMediaHash() != null) {
 
 			printCheckbox(out, message.getMediaHash());
@@ -276,14 +261,14 @@ public class ReportGenerator {
 
 			TagHtml img = getThumbTag(message, "imageImg");
 
-			String title = isLink ? "Link" : "Image";
+			String title = "Image";
 			img.setAtribute("title", title);
 			link.getInner().add(img);
 			div.getInner().add(link);
 
 			out.println(div.toString());
 
-		} else if (!isLink) {
+		} else {
 			out.println(getThumbTag(message, "imageImg").toString()); //$NON-NLS-1$
 		}
 		out.println("<br/>");
@@ -332,10 +317,6 @@ public class ReportGenerator {
 				+ "', this.checked)\" name=\"" + hash + "\" />");
 	}
 
-	private void printLink(PrintWriter out, Message message) {
-		printImage(out, message, true);
-	}
-
 	private void printMessage(PrintWriter out, Message message) {
 
 		out.println("<div class=\"linha\" id=\"" + message.getId() + "\">"); //$NON-NLS-1$
@@ -368,7 +349,8 @@ public class ReportGenerator {
                 printAudio(out, message);
 			} else if (message.getMessageType().contains(MessageType.LINK.getValue())) {
                 out.print(format("Message Type: " + message.getMessageType()) + "<br>");
-                printLink(out, message);
+                out.print(format("Title: " + message.getText()) + "<br>");
+                out.print(format("Link: " + message.getLink()) + "<br>");
             } else if (message.getMessageType().contains(MessageType.TEXT.getValue())) {
                 out.print(format(message.getText()));
             } else if (message.getMessageType().contains(MessageType.PLACEHOLDER.getValue())) {
