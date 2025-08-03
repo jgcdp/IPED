@@ -442,20 +442,8 @@ public class InstagramParser extends SQLite3DBParser {
                 user.setUsername(userInfo.optString("username"));
                 user.setFullname(userInfo.optString("full_name"));
 
-                String profilePicName = userInfo.optString("profile_pic_url");
-
-                if (profilePicName.contains("?"))
-                    profilePicName = profilePicName.split("\\?")[0];
-
-                if (profilePicName.contains(".jpg"))
-                    profilePicName = profilePicName.split(".jpg")[0];
-
-                String[] parts = profilePicName.split("/");
-
-                if (parts.length > 0)
-                    profilePicName = parts[parts.length - 1];
-
-                user.setProfilePicSearchName(profilePicName);
+                String profilePicUrl = userInfo.optString("profile_pic_url");
+                user.setProfilePicSearchName(getQueryIdFromLink(profilePicUrl,".jpg"));
                 usersDecoded.add(user);
             }
         } catch (Exception e) {
@@ -869,9 +857,7 @@ public class InstagramParser extends SQLite3DBParser {
         }
     }
 
-    private void loadImage(Message message, String query, IItemSearcher searcher) {
-        query = searcher.escapeQuery(query);
-        query = query.replace("_", " AND name:");
+    private void loadMedia(Message message, String query, IItemSearcher searcher) {
         List<IItemReader> items = Util.getItems(query, searcher);
         if (items != null && !items.isEmpty()) {
             IItemReader item = items.get(0);
@@ -885,24 +871,42 @@ public class InstagramParser extends SQLite3DBParser {
     }
 
     private void getMoreInfo(JsonNode rootNode, Message message, IItemSearcher searcher) {
+        JsonNode media;
+        String mediaType, mediaId, imageCacheNameById, imageCacheNameByLink, query;
         if (message.getMessageType().equals(MessageType.MEDIA.getValue())) {
-            JsonNode media = rootNode.path("media");
-            String mediaType = media.path("media_type").asText();
-            String mediaId = media.path("id").asText();
+            media = rootNode.path("media");
+            mediaType = media.path("media_type").asText();
+            mediaId = media.path("id").asText();
+            // try to get media from cache
+            imageCacheNameById = Base64.getEncoder().encodeToString(mediaId.getBytes(StandardCharsets.UTF_8));
+            query = "name:" + imageCacheNameById + "* OR (name:*";
+            query = query.replace("=", "");
 
             if (mediaType.equals("1")) {
+                imageCacheNameByLink = media.path("image_versions2").path("candidates").get(0).path("url").asText();
                 message.setMessageType(MessageType.IMAGE.getValue());
-
-                // try to get media from cache
-                String imageCacheName = Base64.getEncoder().encodeToString(mediaId.getBytes(StandardCharsets.UTF_8));
-                String query = "name:" + imageCacheName + "*";
-                query = query.replace("=", "");
-                loadImage(message, query, searcher);
+                imageCacheNameByLink = getQueryIdFromLink(imageCacheNameByLink, ".jpg");
+                query = query + imageCacheNameByLink + "*)";
+                query = query.replace("_", " AND name:");
+                loadMedia(message, query, searcher);
             } else if (mediaType.equals("2")) {
+                imageCacheNameByLink = media.path("video_versions").get(0).path("url").asText();
                 message.setMessageType(MessageType.VIDEO.getValue());
+                imageCacheNameByLink = getQueryIdFromLink(imageCacheNameByLink, ".mp4");
+                query = query + imageCacheNameByLink + "*)";
+                query = query.replace("_", " AND name:");
+                loadMedia(message, query, searcher);
             }
 
-        } else if (message.getMessageType().equals("xma_link") || message.getMessageType().equals("xma_media_share")) {
+        } else if (message.getMessageType().contains("voice_media")) {
+            message.setMessageType(MessageType.AUDIO.getValue());
+            media = rootNode.path("voice_media");
+            imageCacheNameByLink = media.path("media").path("audio").path("audio_src").asText();
+            imageCacheNameByLink = getQueryIdFromLink(imageCacheNameByLink, ".aac");
+            query = "name:" + imageCacheNameByLink + "*";
+            query = query.replace("_", " AND name:");
+            loadMedia(message, query, searcher);
+        }else if (message.getMessageType().equals("xma_link") || message.getMessageType().equals("xma_media_share")) {
             JsonNode info = rootNode.path("hscroll_share").get(0);
             message.setLink(info.path("target_url").asText());
             message.setText(info.path("title_text").asText());
@@ -918,6 +922,24 @@ public class InstagramParser extends SQLite3DBParser {
             JsonNode info = rootNode.path(message.getMessageType());
             message.setText(info.path("title").asText());
         }
+    }
+
+    private String getQueryIdFromLink(String url, String type) {
+        if(url != null) {
+            if (url.contains("?"))
+                url = url.split("\\?")[0];
+
+            if (url.contains(type))
+                url = url.split(type)[0];
+
+            String[] parts = url.split("/");
+
+            if (parts.length > 0)
+                url = parts[parts.length - 1];
+
+            return url;
+        } else
+            return "";
     }
 
     private Contact getUser(String userId) {
