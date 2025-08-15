@@ -135,9 +135,9 @@ public class InstagramParser extends SQLite3DBParser {
         }
 
         String mimetype = metadata.get(StandardParser.INDEXER_CONTENT_TYPE);
-        if (mimetype.equals(INSTAGRAM_DB.toString()) && chats.isEmpty()) {
+        if (mimetype.equals(INSTAGRAM_DB.toString())) {
             parseInstagramDBAndroid(stream, handler, metadata, context);
-        } else if (mimetype.equals(INSTAGRAM_DB_IOS.toString()) && chats.isEmpty()) {
+        } else if (mimetype.equals(INSTAGRAM_DB_IOS.toString())) {
             parseInstagramDBIOS(stream, handler, metadata, context);
         } else if (mimetype.equals(INSTAGRAM_USER_CONF.toString())) {
             parseAndroidAccount(stream, handler, metadata, context);
@@ -443,7 +443,7 @@ public class InstagramParser extends SQLite3DBParser {
                 user.setFullname(userInfo.optString("full_name"));
 
                 String profilePicUrl = userInfo.optString("profile_pic_url");
-                user.setProfilePicSearchName(getQueryIdFromLink(profilePicUrl,".jpg"));
+                user.setProfilePicSearchName(getQueryIdFromLink(profilePicUrl, ".jpg"));
                 usersDecoded.add(user);
             }
         } catch (Exception e) {
@@ -565,11 +565,16 @@ public class InstagramParser extends SQLite3DBParser {
 
         }
 
-        // needs to get another plist from another sqlite table.
+        // needs to get another plist from the chat thread sqlite table.
         if (chat == null) {
             PreparedStatement pstmt = conn.prepareStatement(QUERY_GET_MESSAGE_THREAD);
             pstmt.setString(1, chatId);
             ResultSet rs = pstmt.executeQuery();
+
+            //TODO DEAL WITH MESSAGES WITHOUT CHAT THREAD. ERASED CHATS?
+            if (!rs.next())
+                return;
+
             String userId = rs.getString("viewer_id");
             byte[] metadataPlist = rs.getBytes("metadata");
             root = (NSDictionary) PropertyListParser.parse(metadataPlist);
@@ -733,6 +738,9 @@ public class InstagramParser extends SQLite3DBParser {
 
             firstMsg = nextMsg;
         }
+
+        chats = new ArrayList<>();
+
     }
 
     private void storeLinkedHashes(List<Message> messages, Metadata metadata) {
@@ -890,23 +898,24 @@ public class InstagramParser extends SQLite3DBParser {
                 query = query.replace("_", " AND name:");
                 loadMedia(message, query, searcher);
             } else if (mediaType.equals("2")) {
-                imageCacheNameByLink = media.path("video_versions").get(0).path("url").asText();
                 message.setMessageType(MessageType.VIDEO.getValue());
-                imageCacheNameByLink = getQueryIdFromLink(imageCacheNameByLink, ".mp4");
-                query = query + imageCacheNameByLink + "*)";
-                query = query.replace("_", " AND name:");
-                loadMedia(message, query, searcher);
+
+//                imageCacheNameByLink = media.path("video_versions").get(0).path("url").asText();
+//                imageCacheNameByLink = getQueryIdFromLink(imageCacheNameByLink, ".mp4");
+//                query = query + imageCacheNameByLink + "*)";
+//                query = query.replace("_", " AND name:");
+//                loadMedia(message, query, searcher);
             }
 
         } else if (message.getMessageType().contains("voice_media")) {
             message.setMessageType(MessageType.AUDIO.getValue());
-            media = rootNode.path("voice_media");
-            imageCacheNameByLink = media.path("media").path("audio").path("audio_src").asText();
-            imageCacheNameByLink = getQueryIdFromLink(imageCacheNameByLink, ".aac");
-            query = "name:" + imageCacheNameByLink + "*";
+            media = rootNode.path("voice_media").path("media");
+            mediaId = media.path("id").asText();
+            query = "name:*" + mediaId + "*";
             query = query.replace("_", " AND name:");
             loadMedia(message, query, searcher);
-        }else if (message.getMessageType().equals("xma_link") || message.getMessageType().equals("xma_media_share")) {
+
+        } else if (message.getMessageType().equals("xma_link") || message.getMessageType().equals("xma_media_share")) {
             JsonNode info = rootNode.path("hscroll_share").get(0);
             message.setLink(info.path("target_url").asText());
             message.setText(info.path("title_text").asText());
@@ -925,7 +934,7 @@ public class InstagramParser extends SQLite3DBParser {
     }
 
     private String getQueryIdFromLink(String url, String type) {
-        if(url != null) {
+        if (url != null) {
             if (url.contains("?"))
                 url = url.split("\\?")[0];
 

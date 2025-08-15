@@ -212,32 +212,28 @@ public class ReportGenerator {
 
 		if (message.getMediaHash() != null) {
 
-//			printCheckbox(out, message.getMediaHash());
-//
-//			TagHtml div = new TagHtml("div");
-//			if (message.getMediaComment() != null) {
-//				div.setAtribute("class", "tooltip");
-//				div.getInner().add(creatSpanTag(message.getMediaComment()));
-//			}
-//
-//			TagHtml link = new TagHtml("a");
-//			link.setAtribute("onclick", "app.open('hash:" + message.getMediaHash() + "')");
-//
-//			String reportSource = iped.parsers.util.Util.getExportPath(message.getMediaHash(),
-//					message.getMediaExtension());
-//			String originalSource = iped.parsers.util.Util.getSourceFileIfExists(message.getMediaItem()).orElse(null);
-//
-//			if (reportSource != null) {
-//				img.setAtribute("data-src1", format(reportSource));
-//			}
-//			if (originalSource != null) {
-//				img.setAtribute("data-src2", format(originalSource));
-//			}
-//			img.setAtribute("class", "audioImg iped-audio");
-//
-//			link.getInner().add(img);
-//			div.getInner().add(link);
-//			out.println(div.toString());
+			printCheckbox(out, message.getMediaHash());
+
+			TagHtml div = new TagHtml("div");
+
+			TagHtml link = new TagHtml("a");
+			link.setAtribute("onclick", "app.open('hash:" + message.getMediaHash() + "')");
+
+			String reportSource = iped.parsers.util.Util.getExportPath(message.getMediaHash(),
+					message.getMediaItem().getType());
+			String originalSource = iped.parsers.util.Util.getSourceFileIfExists(message.getMediaItem()).orElse(null);
+
+			if (reportSource != null) {
+				img.setAtribute("data-src1", format(reportSource));
+			}
+			if (originalSource != null) {
+				img.setAtribute("data-src2", format(originalSource));
+			}
+			img.setAtribute("class", "audioImg iped-audio");
+
+			link.getInner().add(img);
+			div.getInner().add(link);
+			out.println(div.toString());
 
 		} else {
 			img.setAtribute("class", "audioImg");

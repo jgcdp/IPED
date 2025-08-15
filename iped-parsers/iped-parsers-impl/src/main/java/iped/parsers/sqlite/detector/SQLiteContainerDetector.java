@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import iped.parsers.instagram.InstagramParser;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -35,14 +36,13 @@ import iped.utils.IOUtil;
 
 /**
  * Detects subtypes of SQLite based on table names.
- * 
- * @author Nassif
  *
+ * @author Nassif
  */
 public class SQLiteContainerDetector implements Detector {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -102,7 +102,7 @@ public class SQLiteContainerDetector implements Detector {
 
     private MediaType detectSQLiteFormat(File file) {
         try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath(), //$NON-NLS-1$
-                sqliteConnectionProperties); Statement st = conn.createStatement();) {
+            sqliteConnectionProperties); Statement st = conn.createStatement();) {
             Set<String> tableNames = new HashSet<String>();
             String sql = "SELECT name FROM sqlite_master WHERE type='table'"; //$NON-NLS-1$
             ResultSet rs = st.executeQuery(sql);
@@ -119,88 +119,93 @@ public class SQLiteContainerDetector implements Detector {
     private MediaType detectTableNames(Connection conn, Set<String> tableNames) throws SQLException {
 
         if (tableNames.contains("messagesv12") && //$NON-NLS-1$
-                tableNames.contains("profilecachev8") && //$NON-NLS-1$
-                (tableNames.contains("conversationsv14") || tableNames.contains("conversationsv13")) && //$NON-NLS-1$
-                tableNames.contains("internaldata")) //$NON-NLS-1$
+            tableNames.contains("profilecachev8") && //$NON-NLS-1$
+            (tableNames.contains("conversationsv14") || tableNames.contains("conversationsv13")) && //$NON-NLS-1$
+            tableNames.contains("internaldata")) //$NON-NLS-1$
             return SkypeParser.SKYPE_MIME_V12;
 
         if (tableNames.contains("Messages") && //$NON-NLS-1$
-                tableNames.contains("Participants") && //$NON-NLS-1$
-                tableNames.contains("Contacts") && //$NON-NLS-1$
-                tableNames.contains("Transfers") && //$NON-NLS-1$
-                tableNames.contains("Conversations") && //$NON-NLS-1$
-                tableNames.contains("Chats") && //$NON-NLS-1$
-                tableNames.contains("Calls")) //$NON-NLS-1$
+            tableNames.contains("Participants") && //$NON-NLS-1$
+            tableNames.contains("Contacts") && //$NON-NLS-1$
+            tableNames.contains("Transfers") && //$NON-NLS-1$
+            tableNames.contains("Conversations") && //$NON-NLS-1$
+            tableNames.contains("Chats") && //$NON-NLS-1$
+            tableNames.contains("Calls")) //$NON-NLS-1$
             return SkypeParser.SKYPE_MIME;
 
         if ((tableNames.contains("chat_list") || tableNames.contains("chat")) &&
-                (tableNames.contains("messages") || tableNames.contains("message")) &&
-                (tableNames.contains("group_participants") || tableNames.contains("group_participant_user")) &&
-                tableNames.contains("media_refs") &&
-                tableNames.contains("sqlite_sequence"))
+            (tableNames.contains("messages") || tableNames.contains("message")) &&
+            (tableNames.contains("group_participants") || tableNames.contains("group_participant_user")) &&
+            tableNames.contains("media_refs") &&
+            tableNames.contains("sqlite_sequence"))
             return WhatsAppParser.MSG_STORE;
 
         if (tableNames.contains("wa_contacts") && //$NON-NLS-1$
-                tableNames.contains("wa_contact_capabilities") && //$NON-NLS-1$
-                tableNames.contains("sqlite_sequence")) //$NON-NLS-1$
+            tableNames.contains("wa_contact_capabilities") && //$NON-NLS-1$
+            tableNames.contains("sqlite_sequence")) //$NON-NLS-1$
             return WhatsAppParser.WA_DB;
 
         if (tableNames.contains("ZWACHATSESSION") && //$NON-NLS-1$
-                tableNames.contains("ZWAMESSAGE") && //$NON-NLS-1$
-                tableNames.contains("ZWAMEDIAITEM") && //$NON-NLS-1$
-                tableNames.contains("ZWAGROUPMEMBER")) //$NON-NLS-1$
+            tableNames.contains("ZWAMESSAGE") && //$NON-NLS-1$
+            tableNames.contains("ZWAMEDIAITEM") && //$NON-NLS-1$
+            tableNames.contains("ZWAGROUPMEMBER")) //$NON-NLS-1$
             return WhatsAppParser.CHAT_STORAGE;
 
         if (tableNames.contains("ZWAADDRESSBOOKCONTACT") || //$NON-NLS-1$
-                (tableNames.contains("ZWACONTACT") && tableNames.contains("ZWAPHONE"))) //$NON-NLS-1$ //$NON-NLS-2$
+            (tableNames.contains("ZWACONTACT") && tableNames.contains("ZWAPHONE"))) //$NON-NLS-1$ //$NON-NLS-2$
             return WhatsAppParser.CONTACTS_V2;
 
         if (tableNames.contains("moz_places") && //$NON-NLS-1$
-                tableNames.contains("moz_bookmarks")) //$NON-NLS-1$
+            tableNames.contains("moz_bookmarks")) //$NON-NLS-1$
             return FirefoxSqliteParser.MOZ_PLACES;
 
         if (tableNames.contains("history_items") && //$NON-NLS-1$
-                tableNames.contains("history_visits")) //$NON-NLS-1$
+            tableNames.contains("history_visits")) //$NON-NLS-1$
             return SafariSqliteParser.SAFARI_SQLITE;
 
         if (tableNames.contains("downloads") && //$NON-NLS-1$
-                tableNames.contains("urls") && //$NON-NLS-1$
-                tableNames.contains("visits") && //$NON-NLS-1$
-                tableNames.contains("downloads_url_chains")) //$NON-NLS-1$
+            tableNames.contains("urls") && //$NON-NLS-1$
+            tableNames.contains("visits") && //$NON-NLS-1$
+            tableNames.contains("downloads_url_chains")) //$NON-NLS-1$
             return ChromeSqliteParser.CHROME_SQLITE;
 
         if (tableNames.contains("Activity") && tableNames.contains("Activity_PackageId") && tableNames.contains("ActivityOperation"))
             return WinXTimelineParser.WIN10_TIMELINE;
 
         if (tableNames.contains("events_persisted") && tableNames.contains("tag_descriptions")
-                && tableNames.contains("provider_groups"))
+            && tableNames.contains("provider_groups"))
             return EventTranscriptParser.EVENT_TRANSCRIPT;
-        
+
         if (tableNames.contains("cloud_graph_entry") &&
-                tableNames.contains("cloud_relations"))
+            tableNames.contains("cloud_relations"))
             return GDriveMainParser.GDRIVE_CLOUD_GRAPH;
-        
+
         if (tableNames.contains("cloud_entry") &&
-                tableNames.contains("mapping") &&
-                tableNames.contains("cloud_relations") &&
-                tableNames.contains("local_entry") &&
-                tableNames.contains("local_relations") &&
-                tableNames.contains("volume_info"))
+            tableNames.contains("mapping") &&
+            tableNames.contains("cloud_relations") &&
+            tableNames.contains("local_entry") &&
+            tableNames.contains("local_relations") &&
+            tableNames.contains("volume_info"))
             return GDriveMainParser.GDRIVE_SNAPSHOT;
-        
+
         if (tableNames.contains("global_preferences") ||
-                tableNames.contains("data"))
+            tableNames.contains("data"))
             return GDriveMainParser.GDRIVE_ACCOUNT_INFO;
 
         if (tableNames.contains("dialogs") && tableNames.contains("chats") && tableNames.contains("users")
-                && (tableNames.contains("messages") || tableNames.contains("messages_v2"))
-                && (tableNames.contains("media") || tableNames.contains("media_v2") || tableNames.contains("media_v3")
-                        || tableNames.contains("media_v4")))
+            && (tableNames.contains("messages") || tableNames.contains("messages_v2"))
+            && (tableNames.contains("media") || tableNames.contains("media_v2") || tableNames.contains("media_v3")
+            || tableNames.contains("media_v4")))
             return TelegramParser.TELEGRAM_DB;
-        
+
+        // detection for Instagram iOS DB
+        if (tableNames.contains("messages") && tableNames.contains("threads") && tableNames.contains("thread_client_state") && tableNames.contains("mutations")) {
+            return InstagramParser.INSTAGRAM_DB_IOS;
+        }
+
         // detection for Telegram iOS DB
         if (tableNames.contains("t0") && tableNames.contains("t2") && tableNames.contains("t6")
-                && tableNames.contains("t7") && tableNames.contains("t9")) {
+            && tableNames.contains("t7") && tableNames.contains("t9")) {
             return TelegramParser.TELEGRAM_DB_IOS;
         }
 
@@ -214,12 +219,12 @@ public class SQLiteContainerDetector implements Detector {
         }
 
         if (tableNames.contains("message") && tableNames.contains("chat") && tableNames.contains("chat_message_join")
-                && tableNames.contains("chat_handle_join")) {
+            && tableNames.contains("chat_handle_join")) {
             return MediaType.application("x-ios-sms-db");
         }
 
         if (tableNames.contains("ABPerson") && tableNames.contains("ABMultiValue")
-                && tableNames.contains("ABPersonFullTextSearch_content")) {
+            && tableNames.contains("ABPersonFullTextSearch_content")) {
             return MediaType.application("x-ios-addressbook-db");
         }
 
@@ -254,7 +259,7 @@ public class SQLiteContainerDetector implements Detector {
         }
 
         if (tableNames.contains("Calendar") && tableNames.contains("CalendarChanges")
-                && tableNames.contains("CalendarItem")) {
+            && tableNames.contains("CalendarItem")) {
             return MediaType.application("x-ios-calendar-db");
         }
 
@@ -264,7 +269,7 @@ public class SQLiteContainerDetector implements Detector {
                 return MediaType.application("x-ios-locations-db");
             }
         }
-        
+
         if (tableNames.contains("ZCONVERSATION") && tableNames.contains("ZMESSAGE") && tableNames.contains("ZCONTACT") && tableNames.contains("ZFILEDATA") && tableNames.contains("ZIMAGEDATA")) {
             return ThreemaParser.CHAT_STORAGE;
         }

@@ -24,6 +24,13 @@ public class Chat {
     }
 
     public void addMessage(Message message){
+
+        for(Message m : this.messages){
+            if(m.getId().equals(message.getId())){
+                return;
+            }
+        }
+
         this.messages.add(message);
     }
 
