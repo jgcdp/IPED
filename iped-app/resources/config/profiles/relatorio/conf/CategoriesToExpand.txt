@@ -18,6 +18,7 @@ OLE files
 Georeferenced Files
 Peer-to-peer
 Event Files
+User Accounts
 
 # Generates registry reports:
 Windows Registry

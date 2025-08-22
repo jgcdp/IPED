@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import iped.parsers.util.Util;
 import iped.properties.BasicProps;
 import iped.utils.EmptyInputStream;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.config.Field;
 import org.apache.tika.exception.TikaException;
@@ -389,6 +390,9 @@ public class InstagramParser extends SQLite3DBParser {
     }
 
     private void searchAvatarFileName(Contact user, IItemSearcher searcher) throws IOException {
+        if(user.getProfilePicSearchName() == null)
+            return;
+
         List<IItemReader> result;
         String query = BasicProps.NAME + ":*" + searcher.escapeQuery(user.getProfilePicSearchName()) + "*";
         query = query.replace("_", " AND name:");
@@ -466,7 +470,7 @@ public class InstagramParser extends SQLite3DBParser {
                 String messageId = rs.getString("message_id");
                 String chatId = rs.getString("thread_id");
                 byte[] messagePlist = rs.getBytes("archive");
-                addMessageIOS(messageId, chatId, messagePlist, conn);
+                buildMessageIOS(messageId, chatId, messagePlist, conn, searcher);
             }
 
             generateChat(searcher, handler, extractor);
@@ -479,7 +483,7 @@ public class InstagramParser extends SQLite3DBParser {
 
     }
 
-    private void addMessageIOS(String messageId, String chatId, byte[] messagePlist, Connection conn) throws
+    private void buildMessageIOS(String messageId, String chatId, byte[] messagePlist, Connection conn, IItemSearcher searcher) throws
         PropertyListFormatException, IOException, ParseException, ParserConfigurationException, SAXException, SQLException {
         NSDictionary root = (NSDictionary) PropertyListParser.parse(messagePlist);
         NSArray primaryArray = null;
@@ -488,6 +492,7 @@ public class InstagramParser extends SQLite3DBParser {
         String text = null;
         String messageType = null;
         String link = null;
+        String linkMediaIOS = null;
         long timestamp = 0;
         Chat chat = null;
         boolean fromMe = false;
@@ -561,9 +566,28 @@ public class InstagramParser extends SQLite3DBParser {
             } else if (text == null && element instanceof NSDictionary && ((NSDictionary) element).containsKey("text")) {
                 indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("text")).getBytes());
                 text = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+            } else if (messageType != null && messageType.toLowerCase().contains("media") && element instanceof NSDictionary && ((NSDictionary) element).containsKey("IGAudio*audio")) {
+                indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("IGAudio*audio")).getBytes());
+                NSDictionary audioData = (NSDictionary) primaryArray.getArray()[indexObjectValue];
+                messageType = MessageType.AUDIO.getValue();
+
+                if(audioData.containsKey("NSURL*playbackURL")){
+                    indexObjectValue = Util.fromBytesToInt(((UID) audioData.objectForKey("NSURL*playbackURL")).getBytes());
+                    if (indexObjectValue != 0) {
+                        NSDictionary targetURLDicionary = ((NSDictionary) primaryArray.getArray()[indexObjectValue]);
+                        indexObjectValue = Util.fromBytesToInt(((UID) targetURLDicionary.objectForKey("NS.relative")).getBytes());
+                        linkMediaIOS = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+                    }
+                }
+                break;
             }
 
         }
+
+        Message message = null;
+        from = getFromAllContacts(fromId);
+        if (from == null)
+            from = new Contact(fromId);
 
         // needs to get another plist from the chat thread sqlite table.
         if (chat == null) {
@@ -620,27 +644,24 @@ public class InstagramParser extends SQLite3DBParser {
             if (user == null)
                 user = new Contact(userId);
 
-            from = getFromAllContacts(fromId);
-            if (from == null)
-                from = new Contact(fromId);
-
             if (!participants.contains(user))
                 participants.add(user);
 
             fromMe = userId.equals(fromId);
             chat = new Chat(user, chatId, participants);
-            Message message = new Message(chat, messageId, text, timestamp, from, fromMe, messageType, link);
+            message = new Message(chat, messageId, text, timestamp, from, fromMe, messageType, link);
             chat.addMessage(message);
             chats.add(chat);
         } else {
-            from = getFromAllContacts(fromId);
-            if (from == null)
-                from = new Contact(fromId);
-
             fromMe = fromId.equals(chat.getUser().getId());
-            Message message = new Message(chat, messageId, text, timestamp, from, fromMe, messageType, link);
+            message = new Message(chat, messageId, text, timestamp, from, fromMe, messageType, link);
             chat.addMessage(message);
         }
+
+        if(linkMediaIOS != null){
+            loadMediaIOS(linkMediaIOS, message, searcher);
+        }
+
     }
 
 
@@ -663,7 +684,7 @@ public class InstagramParser extends SQLite3DBParser {
                 String messageInfoJson = rs.getString("message");
                 String messageType = rs.getString("message_type");
                 timestamp = timestamp / 1000;
-                addMessageAndroid(messageId, chatId, userId, timestamp, text, messageInfoJson, messageType, searcher);
+                buildMessageAndroid(messageId, chatId, userId, timestamp, text, messageInfoJson, messageType, searcher);
             }
 
             generateChat(searcher, handler, extractor);
@@ -801,7 +822,7 @@ public class InstagramParser extends SQLite3DBParser {
         }
     }
 
-    private void addMessageAndroid(String messageId, String chatId, String userId, long timeStamp, String text, String
+    private void buildMessageAndroid(String messageId, String chatId, String userId, long timeStamp, String text, String
         messageInfoJson, String messageType, IItemSearcher searcher) throws JsonProcessingException {
         Chat chat = null;
         Contact from = null;
@@ -863,6 +884,11 @@ public class InstagramParser extends SQLite3DBParser {
         } else {
             chat.addMessage(message);
         }
+    }
+
+    private void loadMediaIOS(String link, Message message, IItemSearcher searcher) {
+        String query = "name:" + DigestUtils.md5Hex(link) + "*";
+        loadMedia(message, query, searcher);
     }
 
     private void loadMedia(Message message, String query, IItemSearcher searcher) {
