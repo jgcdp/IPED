@@ -585,77 +585,83 @@ public class InstagramParser extends SQLite3DBParser {
         }
 
         Message message = null;
+        fromMe = getUser(fromId) != null;
         from = getFromAllContacts(fromId);
         if (from == null)
             from = new Contact(fromId);
 
         // needs to get another plist from the chat thread sqlite table.
         if (chat == null) {
+            List<Contact> participants = new ArrayList<>();
+            Contact participant = null;
             PreparedStatement pstmt = conn.prepareStatement(QUERY_GET_MESSAGE_THREAD);
             pstmt.setString(1, chatId);
             ResultSet rs = pstmt.executeQuery();
 
-            //TODO DEAL WITH MESSAGES WITHOUT CHAT THREAD. ERASED CHATS?
-            if (!rs.next())
-                return;
+            if (rs.next()) {
+                String userId = rs.getString("viewer_id");
+                byte[] metadataPlist = rs.getBytes("metadata");
+                root = (NSDictionary) PropertyListParser.parse(metadataPlist);
+                primaryArray = null;
+                String participantId, participantFullName, participantUserName;
 
-            String userId = rs.getString("viewer_id");
-            byte[] metadataPlist = rs.getBytes("metadata");
-            root = (NSDictionary) PropertyListParser.parse(metadataPlist);
-            primaryArray = null;
-            List<Contact> participants = new ArrayList<>();
-            Contact participant = null;
-            String participantId, participantFullName, participantUserName;
-
-            for (String key : root.allKeys()) {
-                NSObject value = root.objectForKey(key);
-                if (value instanceof NSArray) {
-                    primaryArray = (NSArray) value;
-                    break;
-                }
-            }
-
-            if (primaryArray == null)
-                return;
-
-            for (NSObject element : primaryArray.getArray()) {
-                if (element instanceof NSDictionary) {
-                    if (((NSDictionary) element).containsKey("pk") && ((NSDictionary) element).containsKey("fullName") && ((NSDictionary) element).containsKey("userName")) {
-                        indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("pk")).getBytes());
-                        participantId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
-
-                        indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("fullName")).getBytes());
-                        participantFullName = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
-
-                        indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("userName")).getBytes());
-                        participantUserName = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
-
-                        participant = getContact(participantId);
-                        if (participant == null) {
-                            participant = new Contact(participantId, participantUserName, participantFullName);
-                            chatContacts.add(participant);
-                        }
-                        participants.add(participant);
+                for (String key : root.allKeys()) {
+                    NSObject value = root.objectForKey(key);
+                    if (value instanceof NSArray) {
+                        primaryArray = (NSArray) value;
+                        break;
                     }
                 }
+
+                if (primaryArray == null)
+                    return;
+
+                for (NSObject element : primaryArray.getArray()) {
+                    if (element instanceof NSDictionary) {
+                        if (((NSDictionary) element).containsKey("pk") && ((NSDictionary) element).containsKey("fullName") && ((NSDictionary) element).containsKey("userName")) {
+                            indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("pk")).getBytes());
+                            participantId = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+
+                            indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("fullName")).getBytes());
+                            participantFullName = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+
+                            indexObjectValue = Util.fromBytesToInt(((UID) ((NSDictionary) element).objectForKey("userName")).getBytes());
+                            participantUserName = ((NSString) primaryArray.getArray()[indexObjectValue]).getContent();
+
+                            participant = getContact(participantId);
+                            if (participant == null) {
+                                participant = new Contact(participantId, participantUserName, participantFullName);
+                                chatContacts.add(participant);
+                            }
+                            participants.add(participant);
+                        }
+                    }
+                }
+
+                user = getUser(userId);
+                if (user == null)
+                    user = new Contact(userId);
+
+                if (!participants.contains(user))
+                    participants.add(user);
+            } else{ // message does not have a match on chat thread table. Erased chat?
+                participants.add(from);
+                user = getUser(fromId);
             }
 
-            user = getUser(userId);
-            if (user == null)
-                user = new Contact(userId);
-
-            if (!participants.contains(user))
-                participants.add(user);
-
-            fromMe = userId.equals(fromId);
             chat = new Chat(user, chatId, participants);
             message = new Message(chat, messageId, text, timestamp, from, fromMe, messageType, link);
             chat.addMessage(message);
             chats.add(chat);
         } else {
-            fromMe = fromId.equals(chat.getUser().getId());
             message = new Message(chat, messageId, text, timestamp, from, fromMe, messageType, link);
             chat.addMessage(message);
+
+            if(chat.getUser() == null && fromMe){
+                chat.setUser(from);
+            }
+
+            chat.addParticipant(from);
         }
 
         if(linkMediaIOS != null){

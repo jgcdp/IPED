@@ -63,10 +63,10 @@ public class Contact {
 	}
 
     public String getFullname() {
-        if(fullname != null)
+        if(fullname != null && !fullname.isEmpty())
             return fullname;
 
-        if(name != null)
+        if(name != null && !name.isEmpty())
             return name;
 
         return username;

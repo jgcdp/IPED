@@ -23,6 +23,10 @@ public class Chat {
         return isDeleted;
     }
 
+    public void setUser(Contact user) {
+        this.user = user;
+    }
+
     public void addMessage(Message message){
 
         for(Message m : this.messages){
@@ -32,6 +36,17 @@ public class Chat {
         }
 
         this.messages.add(message);
+    }
+
+    public void addParticipant(Contact participant){
+
+        for(Contact c : this.participants){
+            if(c.getId().equals(participant.getId())){
+                return;
+            }
+        }
+
+        this.participants.add(participant);
     }
 
     public String getId() {
@@ -59,10 +74,15 @@ public class Chat {
     }
 
     public String getName() {
-        String result = "";
-        for(Contact c : participants){
-            result = result.concat(c.toString() + "_");
+        StringBuilder result = new StringBuilder();
+
+        for(int i = 0; i < participants.size(); i++){
+            result.append(participants.get(i).toString());
+
+            if(i < participants.size() - 1)
+                result.append("_");
         }
-        return result;
+
+        return result.toString();
     }
 }
